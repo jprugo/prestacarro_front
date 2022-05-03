@@ -74,7 +74,7 @@ class _SelectionState extends State<Selection> {
   Future<bool> takePicture(String name) async {
     // flask
     var request = http.MultipartRequest(
-        'POST', Uri.parse('http://127.0.0.1:5000/takeimage'));
+        'POST', Uri.parse('http://127.0.0.1:5000/takepicture'));
 
     request.fields.addAll({'name': name});
 
