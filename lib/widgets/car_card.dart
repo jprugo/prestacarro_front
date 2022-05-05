@@ -3,7 +3,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:prestacarro_front/models/active.dart';
 
 class CarCard extends StatelessWidget {
-  final idActive? active;
+  final Active? active;
 
   final VoidCallback onTap;
 

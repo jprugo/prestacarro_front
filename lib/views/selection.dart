@@ -4,12 +4,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:prestacarro_front/models/active.dart';
 import 'package:prestacarro_front/models/person.dart';
-import 'package:prestacarro_front/utils/utils.dart';
+import 'package:prestacarro_front/views/index.dart';
 import 'package:prestacarro_front/widgets/car_card.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:prestacarro_front/widgets/main_layout.dart';
+import 'package:provider/provider.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
-import 'index.dart';
+import '../provider/config_model.dart';
 
 class Selection extends StatefulWidget {
   final Person person;
@@ -24,15 +26,27 @@ class _SelectionState extends State<Selection> {
   // Future
   late Future<List> future;
 
-  bool isReleasing = false;
+  late String? backendBaseUrl;
+  late String? cameraBaseUrl;
+  late String? node1BaseUrl;
+  late String? node2BaseUrl;
+  late String? node3BaseUrl;
 
-  bool isCompleted = false;
+  bool isReleasing = false;
 
   @override
   void initState() {
     super.initState();
+    final _model = Provider.of<ConfigModel>(context, listen: false);
+    backendBaseUrl = _model.config.backendBaseUrl;
+    node1BaseUrl = _model.config.nodeUrl1;
+    node2BaseUrl = _model.config.nodeUrl2;
+    node3BaseUrl = _model.config.nodeUrl3;
+    cameraBaseUrl = _model.config.cameraBaseUrl;
     future = Future.wait([
-      makeNodemcuGetActivesRequest('$nodeUrl/actives'),
+      makeNodemcuGetActivesRequest('$node1BaseUrl/actives'),
+      makeNodemcuGetActivesRequest('$node2BaseUrl/actives'),
+      makeNodemcuGetActivesRequest('$node3BaseUrl/actives'),
     ]);
   }
 
@@ -41,7 +55,7 @@ class _SelectionState extends State<Selection> {
       BuildContext context, int? idPerson, int? idActive) async {
     var headers = {'Content-Type': 'application/json'};
 
-    var request = http.Request('POST', Uri.parse('$backendUrl/loans'));
+    var request = http.Request('POST', Uri.parse('$backendBaseUrl/loans'));
 
     request.body = json.encode({
       "idPerson": idPerson,
@@ -52,14 +66,11 @@ class _SelectionState extends State<Selection> {
 
     http.StreamedResponse response = await request.send();
 
-    setState(() {
-      isReleasing = true;
-    });
-
     if (response.statusCode == 201) {
       var map = jsonDecode(await response.stream.bytesToString());
       try {
         var result2 = await makeLiberationRequest(context, map['id'], idActive);
+        print(result2 ? "Liberacion exitosa" : "No se pudo liberar vehiculo");
       } catch (exception) {
         print(exception.toString());
       }
@@ -71,12 +82,12 @@ class _SelectionState extends State<Selection> {
   }
 
   // photo backend
-  Future<bool> takePicture(String name) async {
+  Future<bool> takePicture(String id) async {
     // flask
     var request = http.MultipartRequest(
-        'POST', Uri.parse('http://127.0.0.1:5000/takepicture'));
+        'POST', Uri.parse('${cameraBaseUrl}/takepicture'));
 
-    request.fields.addAll({'name': name});
+    request.fields.addAll({'id': id});
 
     http.StreamedResponse response = await request.send();
 
@@ -105,7 +116,7 @@ class _SelectionState extends State<Selection> {
       'Content-Length': body.length.toString()
     };
 
-    var request = http.Request('POST', Uri.parse('$nodeUrl/liberate'));
+    var request = http.Request('POST', Uri.parse('$node1BaseUrl/liberate'));
     request.headers.addAll(headers);
     request.body = body;
 
@@ -125,6 +136,7 @@ class _SelectionState extends State<Selection> {
   Future<List> makeNodemcuGetActivesRequest(final String url) async {
     print('Making request to: $url ...');
 
+    
     var request = http.Request('POST', Uri.parse(url));
 
     http.StreamedResponse response = await request.send();
@@ -132,17 +144,48 @@ class _SelectionState extends State<Selection> {
     if (response.statusCode == 200) {
       print('Fetched data succesfully!');
       var listOfDicts = jsonDecode(await response.stream.bytesToString());
-      return listOfDicts.map((e) => idActive.fromJson(e)).toList();
+      return listOfDicts.map((e) => Active.fromJson(e)).toList();
     } else {
       print(response.statusCode);
       throw Exception('Failed!');
     }
+
+    // Prueba
+    /*
+    return [
+      {
+        "id": 1,
+        "internal_code": "C01",
+        "available": false,
+      },
+      {
+        "id": 2,
+        "internal_code": "C02",
+        "available": true,
+      },
+      {
+        "id": 3,
+        "internal_code": "C03",
+        "available": true,
+      },
+      {
+        "id": 4,
+        "internal_code": "C04",
+        "available": false,
+      },
+      {
+        "id": 5,
+        "internal_code": "C05",
+        "available": false,
+      },
+    ].map((e) => Active.fromJson(e)).toList();*/
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
+        body: MainLayout(
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisSize: MainAxisSize.max,
@@ -189,85 +232,154 @@ class _SelectionState extends State<Selection> {
                   //return Text('OK');
                   return Column(
                     children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: snapshot.data[0]
-                            .map<Widget>((e) => CarCard(
-                                  active: e,
-                                  onTap: () {
-                                    Alert(
-                                        context: context,
-                                        title: "Liberacion",
-                                        type: AlertType.info,
-                                        content: Column(
-                                          children: [
-                                            Text(
-                                                '${widget.person.fullName} ¿Deseas continuar con la operacion?'),
-                                          ],
-                                        ),
-                                        buttons: [
-                                          DialogButton(
-                                            onPressed: !isReleasing
-                                                ? () => Navigator.pop(context)
-                                                : null,
-                                            child: Text(
-                                              "No",
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 20),
-                                            ),
-                                          ),
-                                          DialogButton(
-                                            onPressed: !isReleasing
-                                                ? () async {
-                                                    print('click!');
-                                                    /*await takePicture(widget
-                                                            .person.fullName ??
-                                                        "");*/
-                                                    // make request with backend to create loan
-                                                    await createLoanRequest(
-                                                        context,
-                                                        widget.person.id,
-                                                        e.id);
-
-                                                    print('fin click!');
-                                                    Navigator.pop(context);
-
-                                                    Alert(
+                      !isReleasing
+                          ? Column(
+                              children: snapshot.data
+                                  .map<Widget>(
+                                    (row) => Row(
+                                      mainAxisSize: MainAxisSize.max,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: row
+                                          .map<Widget>((c) => CarCard(
+                                                active: c,
+                                                onTap: () {
+                                                  Alert(
                                                       context: context,
                                                       title: "Liberacion",
-                                                      desc:
-                                                          '¡Listo ${widget.person.fullName}! Tienes 30 segundos para retirar el vehiculo ${e.id}',
-                                                      type: AlertType.info,
-                                                    ).show();
+                                                      type: AlertType.warning,
+                                                      content: Column(
+                                                        children: [
+                                                          Text(
+                                                              '${widget.person.fullName} ¿Deseas continuar con la operacion?'),
+                                                        ],
+                                                      ),
+                                                      buttons: [
+                                                        DialogButton(
+                                                          onPressed: () =>
+                                                              Navigator.pop(
+                                                                  context),
+                                                          child: Text(
+                                                            "No",
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .white,
+                                                                fontSize: 20),
+                                                          ),
+                                                        ),
+                                                        DialogButton(
+                                                          onPressed: () async {
+                                                            setState(() {
+                                                              isReleasing =
+                                                                  true;
+                                                            });
+
+                                                            await takePicture(widget
+                                                                    .person
+                                                                    .documentNumber ??
+                                                                "");
+                                                            // make request with backend to create loan
+                                                            await createLoanRequest(
+                                                                    context,
+                                                                    widget
+                                                                        .person
+                                                                        .id,
+                                                                    c.id)
+                                                                .then((value) {
+                                                              if (value) {
+                                                                Alert(
+                                                                    context:
+                                                                        context,
+                                                                    onWillPopActive:
+                                                                        true,
+                                                                    closeFunction:
+                                                                        () {},
+                                                                    title:
+                                                                        "Liberacion",
+                                                                    desc:
+                                                                        '¡Listo ${widget.person.fullName}! Tienes 30 segundos para retirar el vehiculo ${c.id}',
+                                                                    type: AlertType
+                                                                        .success,
+                                                                    buttons: []).show();
+                                                                Future.delayed(
+                                                                    Duration(
+                                                                        seconds:
+                                                                            8),
+                                                                    () {
+                                                                  Navigator.pop(
+                                                                      context);
+                                                                  Navigator.pushReplacement(
+                                                                      context,
+                                                                      MaterialPageRoute(
+                                                                        builder:
+                                                                            (context) =>
+                                                                                Index(),
+                                                                      ));
+                                                                });
+                                                              }
+                                                            });
+
+                                                            Navigator.pop(
+                                                                context);
+
+                                                            //Prueba
+                                                            /*
                                                     Future.delayed(
-                                                        Duration(seconds: 30),
+                                                        Duration(seconds: 6),
                                                         () {
-                                                      Navigator.pop(context);
-                                                    }).whenComplete(() {
-                                                      // navigate to index :)
-                                                      Navigator.pushReplacement(
-                                                          context,
-                                                          MaterialPageRoute(
+                                                      Alert(
+                                                          context: context,
+                                                          onWillPopActive: true,
+                                                          closeFunction: () {},
+                                                          title: "Liberacion",
+                                                          desc:
+                                                              '¡Listo ${widget.person.fullName}! Tienes 30 segundos para retirar el vehiculo ${e.id}',
+                                                          type:
+                                                              AlertType.success,
+                                                          buttons: []).show();
+                                                      Future.delayed(
+                                                          Duration(seconds: 8),
+                                                          () {
+                                                        Navigator.pop(context);
+                                                        Navigator.pushReplacement(
+                                                            context,
+                                                            MaterialPageRoute(
                                                               builder:
                                                                   (context) =>
-                                                                      Index()));
+                                                                      Index(),
+                                                            ));
+                                                      });
                                                     });
-                                                  }
-                                                : null,
-                                            child: Text(
-                                              "Si",
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 20),
-                                            ),
-                                          ),
-                                        ]).show();
-                                  },
-                                ))
-                            .toList(),
-                      ),
+                                                    */
+                                                          },
+                                                          child: Text(
+                                                            "Si",
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .white,
+                                                                fontSize: 20),
+                                                          ),
+                                                        ),
+                                                      ]).show();
+                                                },
+                                              ))
+                                          .toList(),
+                                    ),
+                                  )
+                                  .toList(),
+                            )
+                          : Column(
+                              children: [
+                                CircularProgressIndicator(),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                Text(
+                                  'Estamos procesando la solicitud, un momento por favor.',
+                                  style: TextStyle(fontSize: 18),
+                                )
+                              ],
+                            ),
                     ],
                   );
                 } else {
@@ -280,6 +392,6 @@ class _SelectionState extends State<Selection> {
           )
         ],
       ),
-    );
+    ));
   }
 }

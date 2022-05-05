@@ -1,15 +1,15 @@
-class idActive {
+class Active {
   int? id;
   String? internalCode;
   bool? available;
 
-  idActive({
+  Active({
     this.id,
     this.internalCode,
     this.available,
   });
 
-  idActive.fromJson(Map<String, dynamic> json) {
+  Active.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     internalCode = json['internal_code'];
     available = json['available'];
