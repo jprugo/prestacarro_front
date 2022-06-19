@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:prestacarro_front/models/active.dart';
@@ -28,31 +30,35 @@ class _SelectionState extends State<Selection> {
 
   late String? backendBaseUrl;
   late String? cameraBaseUrl;
-  late String? node1BaseUrl;
-  late String? node2BaseUrl;
-  late String? node3BaseUrl;
 
   bool isReleasing = false;
+  late var nodeUrls = <String?>[];
 
   @override
   void initState() {
     super.initState();
     final _model = Provider.of<ConfigModel>(context, listen: false);
     backendBaseUrl = _model.config.backendBaseUrl;
-    node1BaseUrl = _model.config.nodeUrl1;
-    node2BaseUrl = _model.config.nodeUrl2;
-    node3BaseUrl = _model.config.nodeUrl3;
     cameraBaseUrl = _model.config.cameraBaseUrl;
-    future = Future.wait([
-      makeNodemcuGetActivesRequest('$node1BaseUrl/actives'),
-      makeNodemcuGetActivesRequest('$node2BaseUrl/actives'),
-      makeNodemcuGetActivesRequest('$node3BaseUrl/actives'),
-    ]);
+
+    nodeUrls = [
+      _model.config.nodeUrl1,
+      _model.config.nodeUrl2,
+      _model.config.nodeUrl3
+    ];
+
+    future = Future.wait(nodeUrls.map((e) => e != null
+        ? makeNodemcuGetActivesRequest('$e/actives')
+        : basicFuture()));
+  }
+
+  Future<dynamic> basicFuture() async {
+    return null;
   }
 
   // backend request
   Future<bool> createLoanRequest(
-      BuildContext context, int? idPerson, int? idActive) async {
+      BuildContext context, int? idPerson, int? idActive, String url) async {
     var headers = {'Content-Type': 'application/json'};
 
     var request = http.Request('POST', Uri.parse('$backendBaseUrl/loans'));
@@ -69,7 +75,8 @@ class _SelectionState extends State<Selection> {
     if (response.statusCode == 201) {
       var map = jsonDecode(await response.stream.bytesToString());
       try {
-        var result2 = await makeLiberationRequest(context, map['id'], idActive);
+        var result2 =
+            await makeLiberationRequest(context, map['id'], idActive, url);
         print(result2 ? "Liberacion exitosa" : "No se pudo liberar vehiculo");
       } catch (exception) {
         print(exception.toString());
@@ -79,31 +86,43 @@ class _SelectionState extends State<Selection> {
       print(response.reasonPhrase);
       return false;
     }
+
+    // To mock function
+    // await Future.delayed(Duration(seconds: 1), () {
+    //   print('waiting 2 seconds...');
+    // });
+
+    // return true;
   }
 
   // photo backend
-  Future<bool> takePicture(String id) async {
+  Future<String?> takePicture(String id) async {
+    print('taking picture... [URL]: ${cameraBaseUrl}');
     // flask
+    if (cameraBaseUrl == null) return null;
+
     var request = http.MultipartRequest(
         'POST', Uri.parse('${cameraBaseUrl}/takepicture'));
 
     request.fields.addAll({'id': id});
 
-    http.StreamedResponse response = await request.send();
+    final response = await request.send();
 
     if (response.statusCode == 201) {
       print('Picture was taken!');
-      return true;
+      //return 'C:\Users\juan.rueda\Documents\cron.png';
+      var result = json.decode(await response.stream.bytesToString());
+      print(result['imagePath']);
+      return result['imagePath'];
     } else {
       print(response.reasonPhrase);
-      return false;
+      return null;
     }
   }
 
   // nodemcu request
   Future<bool> makeLiberationRequest(
-      BuildContext context, int idLoan, int? idActive) async {
-    // test
+      BuildContext context, int idLoan, int? idActive, String url) async {
     print('[Nodemcu] Making release request for loan $idLoan ...');
 
     var body = json.encode({
@@ -116,7 +135,7 @@ class _SelectionState extends State<Selection> {
       'Content-Length': body.length.toString()
     };
 
-    var request = http.Request('POST', Uri.parse('$node1BaseUrl/liberate'));
+    var request = http.Request('POST', Uri.parse('$url/liberate'));
     request.headers.addAll(headers);
     request.body = body;
 
@@ -130,13 +149,15 @@ class _SelectionState extends State<Selection> {
       //throw Exception('Failed!');
       return false;
     }
+
+    // To mocking functionality
+    //return true;
   }
 
   // nodemcu request
   Future<List> makeNodemcuGetActivesRequest(final String url) async {
     print('Making request to: $url ...');
 
-    
     var request = http.Request('POST', Uri.parse(url));
 
     http.StreamedResponse response = await request.send();
@@ -150,35 +171,45 @@ class _SelectionState extends State<Selection> {
       throw Exception('Failed!');
     }
 
-    // Prueba
-    /*
-    return [
-      {
-        "id": 1,
-        "internal_code": "C01",
-        "available": false,
-      },
-      {
-        "id": 2,
-        "internal_code": "C02",
-        "available": true,
-      },
-      {
-        "id": 3,
-        "internal_code": "C03",
-        "available": true,
-      },
-      {
-        "id": 4,
-        "internal_code": "C04",
-        "available": false,
-      },
-      {
-        "id": 5,
-        "internal_code": "C05",
-        "available": false,
-      },
-    ].map((e) => Active.fromJson(e)).toList();*/
+    // To mock functionality
+    // var rnd = Random();
+    // var number = rnd.nextInt(3);
+    // print('generated: ${number}');
+
+    // await Future.delayed(Duration(seconds: 1), () {
+    //   print('waiting 2 seconds...');
+    // });
+
+    // if (number <= 0) {
+    //   return [
+    //     Active(available: true, id: 1, internalCode: 'C01'),
+    //     Active(available: true, id: 2, internalCode: 'C02'),
+    //     Active(available: true, id: 3, internalCode: 'C03'),
+    //     Active(available: true, id: 4, internalCode: 'C04'),
+    //     Active(available: true, id: 5, internalCode: 'C05'),
+    //   ];
+    // } else if (number == 1) {
+    //   return [
+    //     Active(available: true, id: 1, internalCode: 'C01'),
+    //     Active(available: true, id: 2, internalCode: 'C02'),
+    //     Active(available: true, id: 3, internalCode: 'C03'),
+    //     Active(available: true, id: 4, internalCode: 'C04'),
+    //     Active(available: true, id: 5, internalCode: 'C05'),
+    //     Active(available: true, id: 6, internalCode: 'C06'),
+    //     Active(available: true, id: 7, internalCode: 'C07'),
+    //   ];
+    // } else {
+    //   return [
+    //     Active(available: true, id: 1, internalCode: 'C01'),
+    //     Active(available: true, id: 2, internalCode: 'C02'),
+    //     Active(available: true, id: 3, internalCode: 'C03'),
+    //     Active(available: true, id: 4, internalCode: 'C04'),
+    //     Active(available: true, id: 5, internalCode: 'C05'),
+    //     Active(available: true, id: 6, internalCode: 'C06'),
+    //     Active(available: true, id: 7, internalCode: 'C07'),
+    //     Active(available: true, id: 8, internalCode: 'C08'),
+    //   ];
+    // }
   }
 
   @override
@@ -229,145 +260,142 @@ class _SelectionState extends State<Selection> {
                   print(snapshot.error);
                   return const Text('Error');
                 } else if (snapshot.hasData) {
-                  //return Text('OK');
+                  var data = snapshot.data.asMap();
+
                   return Column(
                     children: [
                       !isReleasing
                           ? Column(
-                              children: snapshot.data
-                                  .map<Widget>(
-                                    (row) => Row(
-                                      mainAxisSize: MainAxisSize.max,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: row
-                                          .map<Widget>((c) => CarCard(
-                                                active: c,
-                                                onTap: () {
-                                                  Alert(
-                                                      context: context,
-                                                      title: "Liberacion",
-                                                      type: AlertType.warning,
-                                                      content: Column(
-                                                        children: [
-                                                          Text(
-                                                              '${widget.person.fullName} ¿Deseas continuar con la operacion?'),
-                                                        ],
-                                                      ),
-                                                      buttons: [
-                                                        DialogButton(
-                                                          onPressed: () =>
-                                                              Navigator.pop(
-                                                                  context),
-                                                          child: Text(
-                                                            "No",
-                                                            style: TextStyle(
-                                                                color: Colors
-                                                                    .white,
-                                                                fontSize: 20),
-                                                          ),
-                                                        ),
-                                                        DialogButton(
-                                                          onPressed: () async {
-                                                            setState(() {
-                                                              isReleasing =
-                                                                  true;
-                                                            });
+                              children: data.entries
+                                  .map<Widget>((entry) => Row(
+                                        mainAxisSize: MainAxisSize.max,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: entry.value != null
+                                            ? entry.value
+                                                .map<Widget>((a) => CarCard(
+                                                      active: a,
+                                                      onTap: () {
+                                                        Alert(
+                                                            context: context,
+                                                            title: "Liberacion",
+                                                            style: AlertStyle(
+                                                              titleStyle: TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold),
+                                                            ),
+                                                            type: AlertType
+                                                                .warning,
+                                                            content: Column(
+                                                              children: [
+                                                                Text(
+                                                                    '${widget.person.fullName} ¿Deseas continuar con la operacion?'),
+                                                              ],
+                                                            ),
+                                                            buttons: [
+                                                              DialogButton(
+                                                                onPressed: () =>
+                                                                    Navigator.pop(
+                                                                        context),
+                                                                child: Text(
+                                                                  "No",
+                                                                  style: TextStyle(
+                                                                      color: Colors
+                                                                          .white,
+                                                                      fontSize:
+                                                                          20),
+                                                                ),
+                                                              ),
+                                                              DialogButton(
+                                                                onPressed:
+                                                                    () async {
+                                                                  setState(() {
+                                                                    isReleasing =
+                                                                        true;
+                                                                  });
 
-                                                            await takePicture(widget
-                                                                    .person
-                                                                    .documentNumber ??
-                                                                "");
-                                                            // make request with backend to create loan
-                                                            await createLoanRequest(
-                                                                    context,
-                                                                    widget
-                                                                        .person
-                                                                        .id,
-                                                                    c.id)
-                                                                .then((value) {
-                                                              if (value) {
-                                                                Alert(
-                                                                    context:
-                                                                        context,
-                                                                    onWillPopActive:
-                                                                        true,
-                                                                    closeFunction:
-                                                                        () {},
-                                                                    title:
-                                                                        "Liberacion",
-                                                                    desc:
-                                                                        '¡Listo ${widget.person.fullName}! Tienes 30 segundos para retirar el vehiculo ${c.id}',
-                                                                    type: AlertType
-                                                                        .success,
-                                                                    buttons: []).show();
-                                                                Future.delayed(
-                                                                    Duration(
-                                                                        seconds:
-                                                                            8),
-                                                                    () {
+                                                                  var imagePath =
+                                                                      await takePicture(
+                                                                          widget.person.documentNumber ??
+                                                                              "");
+
+                                                                  print(
+                                                                      imagePath);
+
                                                                   Navigator.pop(
                                                                       context);
-                                                                  Navigator.pushReplacement(
-                                                                      context,
-                                                                      MaterialPageRoute(
-                                                                        builder:
-                                                                            (context) =>
-                                                                                Index(),
-                                                                      ));
-                                                                });
-                                                              }
-                                                            });
 
-                                                            Navigator.pop(
-                                                                context);
-
-                                                            //Prueba
-                                                            /*
-                                                    Future.delayed(
-                                                        Duration(seconds: 6),
-                                                        () {
-                                                      Alert(
-                                                          context: context,
-                                                          onWillPopActive: true,
-                                                          closeFunction: () {},
-                                                          title: "Liberacion",
-                                                          desc:
-                                                              '¡Listo ${widget.person.fullName}! Tienes 30 segundos para retirar el vehiculo ${e.id}',
-                                                          type:
-                                                              AlertType.success,
-                                                          buttons: []).show();
-                                                      Future.delayed(
-                                                          Duration(seconds: 8),
-                                                          () {
-                                                        Navigator.pop(context);
-                                                        Navigator.pushReplacement(
-                                                            context,
-                                                            MaterialPageRoute(
-                                                              builder:
-                                                                  (context) =>
-                                                                      Index(),
-                                                            ));
-                                                      });
-                                                    });
-                                                    */
-                                                          },
-                                                          child: Text(
-                                                            "Si",
-                                                            style: TextStyle(
-                                                                color: Colors
-                                                                    .white,
-                                                                fontSize: 20),
-                                                          ),
-                                                        ),
-                                                      ]).show();
-                                                },
-                                              ))
-                                          .toList(),
-                                    ),
-                                  )
-                                  .toList(),
-                            )
+                                                                  await createLoanRequest(
+                                                                          context,
+                                                                          widget
+                                                                              .person
+                                                                              .id,
+                                                                          a.id,
+                                                                          nodeUrls[entry
+                                                                              .key]!)
+                                                                      .then(
+                                                                          (value) {
+                                                                    if (value) {
+                                                                      Alert(
+                                                                          context:
+                                                                              context,
+                                                                          image: Image
+                                                                              .file(
+                                                                            File(imagePath!),
+                                                                            width:
+                                                                                400,
+                                                                            height:
+                                                                                400,
+                                                                          ),
+                                                                          style:
+                                                                              AlertStyle(
+                                                                            titleStyle:
+                                                                                TextStyle(fontWeight: FontWeight.bold),
+                                                                          ),
+                                                                          onWillPopActive:
+                                                                              true,
+                                                                          closeFunction:
+                                                                              () {},
+                                                                          title:
+                                                                              "Liberacion",
+                                                                          desc:
+                                                                              '¡Listo ${widget.person.fullName}! Tienes 30 segundos para retirar el vehiculo ${a.id}',
+                                                                          buttons: []).show();
+                                                                      Future.delayed(
+                                                                          Duration(
+                                                                              seconds: 29),
+                                                                          () {
+                                                                        Navigator.pop(
+                                                                            context);
+                                                                        Navigator.pushReplacement(
+                                                                            context,
+                                                                            MaterialPageRoute(
+                                                                              builder: (context) => Index(),
+                                                                            ));
+                                                                      });
+                                                                    }
+                                                                  });
+                                                                },
+                                                                child: Text(
+                                                                  "Si",
+                                                                  style: TextStyle(
+                                                                      color: Colors
+                                                                          .white,
+                                                                      fontSize:
+                                                                          20),
+                                                                ),
+                                                              ),
+                                                            ]).show();
+                                                      },
+                                                    ))
+                                                .toList()
+                                            : [
+                                                Text(
+                                                    'No se puede mostrar estacion')
+                                              ],
+                                      ))
+                                  .toList())
                           : Column(
                               children: [
                                 CircularProgressIndicator(),

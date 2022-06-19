@@ -7,23 +7,24 @@ class CarCard extends StatelessWidget {
 
   final VoidCallback onTap;
 
-  const CarCard({Key? key, this.active, required this.onTap}) : super(key: key);
+  const CarCard({Key? key, required this.active, required this.onTap}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Card(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(50),
+        borderRadius: BorderRadius.circular(15),
       ),
       child: Container(
         decoration:
-            BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(30))),
-        width: 150,
-        height: 150,
+            BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(15))),
+        width: 110,
+        height: 110,
         child: InkWell(
-          borderRadius: BorderRadius.all(Radius.circular(30)),
+          borderRadius: BorderRadius.all(Radius.circular(15)),
           onTap: (active!.available ?? false) ? onTap : null,
-          child: Column(
+          child: Padding(
+            child:  Column(
             children: [
               Text(
                 active!.internalCode ?? "N/A",
@@ -45,7 +46,9 @@ class CarCard extends StatelessWidget {
               )
             ],
           ),
-        ),
+          padding: EdgeInsets.all(10),
+          )
+          ),
       ),
     );
   }
