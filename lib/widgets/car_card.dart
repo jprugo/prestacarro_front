@@ -7,7 +7,8 @@ class CarCard extends StatelessWidget {
 
   final VoidCallback onTap;
 
-  const CarCard({Key? key, required this.active, required this.onTap}) : super(key: key);
+  const CarCard({Key? key, required this.active, required this.onTap})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -21,34 +22,33 @@ class CarCard extends StatelessWidget {
         width: 110,
         height: 110,
         child: InkWell(
-          borderRadius: BorderRadius.all(Radius.circular(15)),
-          onTap: (active!.available ?? false) ? onTap : null,
-          child: Padding(
-            child:  Column(
-            children: [
-              Text(
-                active!.internalCode ?? "N/A",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              Expanded(
-                child: Padding(
-                  child: SvgPicture.asset(
-                    'assets/svgs/paw.svg',
-                    semanticsLabel: 'Paw Logo',
-                    color: (active!.available ?? false) == false
-                        ? Colors.red
-                        : Colors.green,
-                    width: 150,
-                    height: 150,
+            borderRadius: BorderRadius.all(Radius.circular(15)),
+            onTap: (active!.available ?? false) ? onTap : null,
+            child: Padding(
+              child: Column(
+                children: [
+                  Text(
+                    active!.internalCode ?? "N/A",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  padding: EdgeInsets.all(10),
-                ),
-              )
-            ],
-          ),
-          padding: EdgeInsets.all(10),
-          )
-          ),
+                  Expanded(
+                    child: Padding(
+                      child: SvgPicture.asset(
+                        'assets/svgs/paw.svg',
+                        semanticsLabel: 'Paw Logo',
+                        color: (active!.available ?? false) == false
+                            ? Colors.red
+                            : Colors.green,
+                        width: 150,
+                        height: 150,
+                      ),
+                      padding: EdgeInsets.all(10),
+                    ),
+                  )
+                ],
+              ),
+              padding: EdgeInsets.all(10),
+            )),
       ),
     );
   }

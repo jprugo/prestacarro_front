@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:oktoast/oktoast.dart';
 import 'package:prestacarro_front/models/active.dart';
 import 'package:prestacarro_front/models/person.dart';
 import 'package:prestacarro_front/views/index.dart';
@@ -59,6 +59,8 @@ class _SelectionState extends State<Selection> {
   // backend request
   Future<bool> createLoanRequest(
       BuildContext context, int? idPerson, int? idActive, String url) async {
+    // logic
+
     var headers = {'Content-Type': 'application/json'};
 
     var request = http.Request('POST', Uri.parse('$backendBaseUrl/loans'));
@@ -88,6 +90,7 @@ class _SelectionState extends State<Selection> {
     }
 
     // To mock function
+
     // await Future.delayed(Duration(seconds: 1), () {
     //   print('waiting 2 seconds...');
     // });
@@ -110,7 +113,6 @@ class _SelectionState extends State<Selection> {
 
     if (response.statusCode == 201) {
       print('Picture was taken!');
-      //return 'C:\Users\juan.rueda\Documents\cron.png';
       var result = json.decode(await response.stream.bytesToString());
       print(result['imagePath']);
       return result['imagePath'];
@@ -156,25 +158,31 @@ class _SelectionState extends State<Selection> {
 
   // nodemcu request
   Future<List> makeNodemcuGetActivesRequest(final String url) async {
+    // Logic
+
     print('Making request to: $url ...');
 
     var request = http.Request('POST', Uri.parse(url));
 
-    http.StreamedResponse response = await request.send();
+    try {
+      http.StreamedResponse response = await request.send();
 
-    if (response.statusCode == 200) {
-      print('Fetched data succesfully!');
-      var listOfDicts = jsonDecode(await response.stream.bytesToString());
-      return listOfDicts.map((e) => Active.fromJson(e)).toList();
-    } else {
-      print(response.statusCode);
-      throw Exception('Failed!');
+      if (response.statusCode == 200) {
+        print('Fetched data succesfully!');
+        var listOfDicts = jsonDecode(await response.stream.bytesToString());
+        return listOfDicts.map((e) => Active.fromJson(e)).toList();
+      } else {
+        print(response.statusCode);
+        throw Exception("Se recibio un codigo inesperado.");
+      }
+    } catch (exception) {
+      return List.empty();
     }
 
     // To mock functionality
+
     // var rnd = Random();
     // var number = rnd.nextInt(3);
-    // print('generated: ${number}');
 
     // await Future.delayed(Duration(seconds: 1), () {
     //   print('waiting 2 seconds...');
@@ -260,6 +268,32 @@ class _SelectionState extends State<Selection> {
                   print(snapshot.error);
                   return const Text('Error');
                 } else if (snapshot.hasData) {
+                  num totalActives = snapshot.data.fold(0, (previous, current) {
+                    num temp = current == null ? 0 : current.length;
+                    return previous + temp;
+                  });
+
+                  if (totalActives == 0) {
+                    // show toast
+
+                    showToast(
+                      "Lo sentimos, no hay vehiculos disponibles para prestar.",
+                      position: ToastPosition.center,
+                      duration: Duration(seconds: 4),
+                      backgroundColor: Colors.black.withOpacity(0.8),
+                      radius: 15.0,
+                      textStyle: const TextStyle(fontSize: 30.0),
+                    );
+
+                    Future.delayed(Duration(seconds: 4), () {
+                      Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => Index(),
+                          ));
+                    });
+                  }
+
                   var data = snapshot.data.asMap();
 
                   return Column(
