@@ -181,8 +181,7 @@ class _SelectionState extends State<Selection> {
 
     // To mock functionality
 
-    // var rnd = Random();
-    // var number = rnd.nextInt(3);
+    // num number = 8;
 
     // await Future.delayed(Duration(seconds: 1), () {
     //   print('waiting 2 seconds...');
@@ -268,8 +267,9 @@ class _SelectionState extends State<Selection> {
                   print(snapshot.error);
                   return const Text('Error');
                 } else if (snapshot.hasData) {
+
                   num totalActives = snapshot.data.fold(0, (previous, current) {
-                    num temp = current == null ? 0 : current.length;
+                    num temp = current == null ? 0 : current.where( (e) => e.available == true).length;
                     return previous + temp;
                   });
 
