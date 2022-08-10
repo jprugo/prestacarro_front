@@ -13,8 +13,7 @@ class Index extends StatefulWidget {
   State<Index> createState() => _IndexState();
 }
 
-const imagesFolderPath =
-    r"C:\PrestaCarroDesktop\images";
+const imagesFolderPath = r"C:\PrestaCarroDesktop\images";
 
 class _IndexState extends State<Index> {
   // variables
@@ -29,19 +28,16 @@ class _IndexState extends State<Index> {
     future = dirContents(Directory(imagesFolderPath));
     future.then((output) {
       changeImageSlideShow(output);
-      /*timer = Timer.periodic(
-          Duration(seconds: 10), (Timer timer) => changeImageSlideShow(output));*/
     });
   }
 
-  
   @override
   void dispose() {
+    // timer.cancel();
     super.dispose();
   }
 
   changeImageSlideShow(List<FileSystemEntity> output) {
-    print('changing image');
     if (count <= output.length - 1) {
       setState(() {
         currentImagePath = output[count].path;
@@ -97,7 +93,7 @@ class _IndexState extends State<Index> {
                     AsyncSnapshot snapshot,
                   ) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return  CircularProgressIndicator();
+                      return CircularProgressIndicator();
                     } else if (snapshot.connectionState ==
                         ConnectionState.done) {
                       if (snapshot.hasError) {

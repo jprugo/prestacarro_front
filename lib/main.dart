@@ -16,7 +16,6 @@ void main() async {
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.hidden,
     fullScreen: true,
-    
   );
 
   windowManager.waitUntilReadyToShow(windowOptions, () async {
@@ -44,7 +43,7 @@ class MyApp extends StatelessWidget {
             primarySwatch: Colors.blue,
             fontFamily: 'Raleway',
           ),
-          //debugShowCheckedModeBanner: false,
+          debugShowCheckedModeBanner: false,
           home: Index(),
         ),
       ),

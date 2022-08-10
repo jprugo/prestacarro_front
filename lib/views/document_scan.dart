@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:prestacarro_front/models/person.dart';
 import 'package:prestacarro_front/provider/config_model.dart';
+import 'package:prestacarro_front/views/index.dart';
 import 'package:prestacarro_front/widgets/main_layout.dart';
 import 'package:provider/provider.dart';
 
@@ -18,26 +20,65 @@ class DocumentScan extends StatefulWidget {
   _DocumentScanState createState() => _DocumentScanState();
 }
 
+// with WidgetsBindingObserver
 class _DocumentScanState extends State<DocumentScan> {
   // The node used to request the keyboard focus.
+
   final FocusNode _focusNode = FocusNode();
-  String _chain = "";
+
+  // String _chain = "";
 
   late Person person;
   late String? backendBaseUrl;
+
+  Timer? countdownTimer;
+
+  Duration myDuration = Duration(minutes: 2);
+
+  void startTimer() {
+    countdownTimer =
+        Timer.periodic(Duration(seconds: 1), (_) => setCountDown());
+  }
+
+  // Step 4
+  void stopTimer() {
+    setState(() => countdownTimer!.cancel());
+  }
+
+  void setCountDown() {
+    final reduceSecondsBy = 1;
+    setState(() {
+      final seconds = myDuration.inSeconds - reduceSecondsBy;
+      if (seconds < 0) {
+        countdownTimer!.cancel();
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => Index()));
+      } else {
+        myDuration = Duration(seconds: seconds);
+      }
+    });
+  }
 
   @override
   void initState() {
     super.initState();
     final _model = Provider.of<ConfigModel>(context, listen: false);
+    startTimer();
     backendBaseUrl = _model.config.backendBaseUrl;
   }
 
   @override
   void dispose() {
     _focusNode.dispose();
+    stopTimer();
     super.dispose();
   }
+
+  // Future<void> didChangeAppLifeCycleState(AppLifecycleState state) async {
+  //   if (state == AppLifecycleState.inactive) {
+  //     print('Inactivity was detected');
+  //   }
+  // }
 
   void createPersonRequest(Person person) async {
     var headers = {'Content-Type': 'application/json'};
@@ -64,56 +105,53 @@ class _DocumentScanState extends State<DocumentScan> {
     }
   }
 
-  void _handleKeyEvent(RawKeyEvent event) {
-    // filtrar so es un evento de soltar la tecla
+  void _handleKeyEvent(RawKeyEvent? event) {
+    // We check if the event is realising a key
     if (event is RawKeyDownEvent) {
-      print('enter pressed!');
+      // Enter means capturing all the buffered data until then
       if (event.logicalKey == LogicalKeyboardKey.enter) {
-
         // To mock functionaity
-
-        // createPersonRequest(new Person(
-        //     documentNumber: '123455665',
-        //     birthDate: '20221098',
-        //     firstName: 'Chino',
-        //     fullName: 'Chino',
-        //     lastName: 'Nacho',
-        //     sex: 'M',
-        //     id: 1));
+        createPersonRequest(new Person(
+            documentNumber: '123455665',
+            birthDate: '20221098',
+            firstName: 'Chino',
+            fullName: 'Chino',
+            lastName: 'Nacho',
+            sex: 'M',
+            id: 1));
 
         // logic
-
-        var array =
-            _chain.replaceAllMapped(RegExp(r'>$'), (match) => '').split('>');
-        if (array.length == 5 || array.length == 7) {
-          Person person = Person(
-            // Tiene solo un apellido y un nombre
-            documentNumber: array[0], // igual para ambos
-            firstName:
-                array[array.length == 5 ? 2 : 3], // (7) -> [3] (5) -> [2]
-            middleName:
-                array.length == 7 ? array[4] : null, // (7) -> [4] (5) -> null
-            lastName: array[1], // igual para ambos
-            surName:
-                array.length == 7 ? array[2] : null, // (7) -> [2] (5) -> null
-            birthDate:
-                array[array.length == 5 ? 4 : 6], // (7) -> [6] (5) -> [4]
-            sex: array[array.length == 5 ? 3 : 5], // (7) -> [5] (5) -> [3]
-          );
-          createPersonRequest(person);
-        } else if (array.length == 6) {
-          Person person = Person(
-              documentNumber: array[0],
-              firstName: array[3],
-              lastName: array[1],
-              surName: array[2], //'middleName':'Blah'
-              birthDate: array[5],
-              sex: array[4]);
-          createPersonRequest(person);
-        }
+        // var array =
+        //     _chain.replaceAllMapped(RegExp(r'>$'), (match) => '').split('>');
+        // if (array.length == 5 || array.length == 7) {
+        //   Person person = Person(
+        //     // Tiene solo un apellido y un nombre
+        //     documentNumber: array[0], // igual para ambos
+        //     firstName:
+        //         array[array.length == 5 ? 2 : 3], // (7) -> [3] (5) -> [2]
+        //     middleName:
+        //         array.length == 7 ? array[4] : null, // (7) -> [4] (5) -> null
+        //     lastName: array[1], // igual para ambos
+        //     surName:
+        //         array.length == 7 ? array[2] : null, // (7) -> [2] (5) -> null
+        //     birthDate:
+        //         array[array.length == 5 ? 4 : 6], // (7) -> [6] (5) -> [4]
+        //     sex: array[array.length == 5 ? 3 : 5], // (7) -> [5] (5) -> [3]
+        //   );
+        //   createPersonRequest(person);
+        // } else if (array.length == 6) {
+        //   Person person = Person(
+        //       documentNumber: array[0],
+        //       firstName: array[3],
+        //       lastName: array[1],
+        //       surName: array[2], //'middleName':'Blah'
+        //       birthDate: array[5],
+        //       sex: array[4]);
+        //   createPersonRequest(person);
+        // }
         // end
       } else if (!event.logicalKey.isAutogenerated) {
-        _chain += event.character!;
+        // _chain += event.character ?? '';
       }
     }
   }

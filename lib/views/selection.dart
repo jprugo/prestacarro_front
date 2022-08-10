@@ -24,6 +24,7 @@ class Selection extends StatefulWidget {
   _SelectionState createState() => _SelectionState();
 }
 
+// with WidgetsBindingObserver
 class _SelectionState extends State<Selection> {
   // Future
   late Future<List> future;
@@ -34,6 +35,10 @@ class _SelectionState extends State<Selection> {
   bool isReleasing = false;
   late var nodeUrls = <String?>[];
 
+  Timer? countdownTimer;
+  Duration myDuration = Duration(minutes: 2);
+
+  // State methods
   @override
   void initState() {
     super.initState();
@@ -50,6 +55,48 @@ class _SelectionState extends State<Selection> {
     future = Future.wait(nodeUrls.map((e) => e != null
         ? makeNodemcuGetActivesRequest('$e/actives')
         : basicFuture()));
+
+    startTimer();
+  }
+
+  @override
+  void dispose() {
+    stopTimer();
+    super.dispose();
+  }
+
+  // Future<void> didChangeAppLifeCycleState(AppLifecycleState state) async {
+  //   if (state == AppLifecycleState.inactive) {
+  //     print('Inactivity was detected');
+  //   }
+  // }
+
+  void startTimer() {
+    countdownTimer =
+        Timer.periodic(Duration(seconds: 1), (_) => setCountDown());
+  }
+
+  // Step 4
+  void stopTimer() {
+    setState(() => countdownTimer!.cancel());
+  }
+
+  void setCountDown() {
+    final reduceSecondsBy = 1;
+    setState(() {
+      final seconds = myDuration.inSeconds - reduceSecondsBy;
+      if (seconds < 0) {
+        countdownTimer!.cancel();
+        if (!isReleasing) {
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (context) => Index()));
+        } else {
+          print("is releasing and isn't posible close");
+        }
+      } else {
+        myDuration = Duration(seconds: seconds);
+      }
+    });
   }
 
   Future<dynamic> basicFuture() async {
@@ -267,9 +314,10 @@ class _SelectionState extends State<Selection> {
                   print(snapshot.error);
                   return const Text('Error');
                 } else if (snapshot.hasData) {
-
                   num totalActives = snapshot.data.fold(0, (previous, current) {
-                    num temp = current == null ? 0 : current.where( (e) => e.available == true).length;
+                    num temp = current == null
+                        ? 0
+                        : current.where((e) => e.available == true).length;
                     return previous + temp;
                   });
 
@@ -353,9 +401,6 @@ class _SelectionState extends State<Selection> {
                                                                       await takePicture(
                                                                           widget.person.documentNumber ??
                                                                               "");
-
-                                                                  print(
-                                                                      imagePath);
 
                                                                   Navigator.pop(
                                                                       context);
