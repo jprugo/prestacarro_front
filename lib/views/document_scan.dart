@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:prestacarro_front/models/person.dart';
 import 'package:prestacarro_front/provider/config_model.dart';
@@ -31,6 +32,8 @@ class _DocumentScanState extends State<DocumentScan> {
   late Person person;
   late String? backendBaseUrl;
 
+  late var _model;
+
   Timer? countdownTimer;
 
   Duration myDuration = Duration(minutes: 2);
@@ -51,8 +54,11 @@ class _DocumentScanState extends State<DocumentScan> {
       final seconds = myDuration.inSeconds - reduceSecondsBy;
       if (seconds < 0) {
         countdownTimer!.cancel();
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => Index()));
+        // Wrap Navigator with SchedulerBinding to wait for rendering state before navigating
+        SchedulerBinding.instance?.addPostFrameCallback((_) {
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (context) => Index()));
+        });
       } else {
         myDuration = Duration(seconds: seconds);
       }
@@ -62,7 +68,7 @@ class _DocumentScanState extends State<DocumentScan> {
   @override
   void initState() {
     super.initState();
-    final _model = Provider.of<ConfigModel>(context, listen: false);
+    _model = Provider.of<ConfigModel>(context, listen: false);
     startTimer();
     backendBaseUrl = _model.config.backendBaseUrl;
   }
@@ -94,12 +100,15 @@ class _DocumentScanState extends State<DocumentScan> {
     if (response.statusCode == 201 || response.statusCode == 208) {
       String responseStr = await response.stream.bytesToString();
       person = Person.fromJson(jsonDecode(responseStr));
-      Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) => Selection(
-                    person: person,
-                  )));
+
+      SchedulerBinding.instance?.addPostFrameCallback((_) {
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => Selection(
+                      person: person,
+                    )));
+      });
     } else {
       print('${response.reasonPhrase}');
     }
@@ -110,48 +119,61 @@ class _DocumentScanState extends State<DocumentScan> {
     if (event is RawKeyDownEvent) {
       // Enter means capturing all the buffered data until then
       if (event.logicalKey == LogicalKeyboardKey.enter) {
-
         // To mock functionaity
-        // createPersonRequest(new Person(
-        //     documentNumber: '123455665',
-        //     birthDate: '20221098',
-        //     firstName: 'Chino',
-        //     fullName: 'Chino',
-        //     lastName: 'Nacho',
-        //     sex: 'M',
-        //     id: 1));
+        createPersonRequest(new Person(
+            documentNumber: '123455665',
+            birthDate: '20221098',
+            firstName: 'Chino',
+            fullName: 'Chino',
+            lastName: 'Nacho',
+            sex: 'M',
+            id: 1));
 
-        // logic
-        var array =
-            _chain.replaceAllMapped(RegExp(r'>$'), (match) => '').split('>');
-        if (array.length == 5 || array.length == 7) {
-          Person person = Person(
-            // Tiene solo un apellido y un nombre
-            documentNumber: array[0], // igual para ambos
-            firstName:
-                array[array.length == 5 ? 2 : 3], // (7) -> [3] (5) -> [2]
-            middleName:
-                array.length == 7 ? array[4] : null, // (7) -> [4] (5) -> null
-            lastName: array[1], // igual para ambos
-            surName:
-                array.length == 7 ? array[2] : null, // (7) -> [2] (5) -> null
-            birthDate:
-                array[array.length == 5 ? 4 : 6], // (7) -> [6] (5) -> [4]
-            sex: array[array.length == 5 ? 3 : 5], // (7) -> [5] (5) -> [3]
-          );
-          createPersonRequest(person);
+        /*
+          // logic
+          var array = _chain
+              .replaceAllMapped(
+                  RegExp(_model.config.separator + r'$'), (match) => '|')
+              .split('|');
+
+        print(array.toString() + ' -- ' + array.length.toString());
+
+        if (array.length == 5 || array.length >= 7) {
+            Person person = Person(
+              // Tiene solo un apellido y un nombre
+              documentNumber: array[0], // igual para ambos
+              firstName:
+                  array[array.length == 5 ? 2 : 3], // (7) -> [3] (5) -> [2]
+              middleName:
+                  array.length == 7 ? array[4] : null, // (7) -> [4] (5) -> null
+              lastName: array[1], // igual para ambos
+              surName:
+                  array.length == 7 ? array[2] : null, // (7) -> [2] (5) -> null
+              birthDate:
+                  array[array.length == 5 ? 4 : 6], // (7) -> [6] (5) -> [4]
+              sex: array[array.length == 5 ? 3 : 5], // (7) -> [5] (5) -> [3]
+            );
+            createPersonRequest(person);
         } else if (array.length == 6) {
-          Person person = Person(
-              documentNumber: array[0],
-              firstName: array[3],
-              lastName: array[1],
-              surName: array[2], //'middleName':'Blah'
-              birthDate: array[5],
-              sex: array[4]);
-          createPersonRequest(person);
+            Person person = Person(
+                documentNumber: array[0],
+                firstName: array[3],
+                lastName: array[1],
+                surName: array[2], //'middleName':'Blah'
+                birthDate: array[5],
+                sex: array[4]);
+            createPersonRequest(person);
+        } else {
+            print('cleaning buffer...');
+            _chain = "";
         }
         // end
-      } else if (!event.logicalKey.isAutogenerated) {
+      */
+      } else if (event.logicalKey == LogicalKeyboardKey.tab) {
+        _chain += "|";
+      }
+      //if (!event.logicalKey.isAutogenerated)
+      else {
         _chain += event.character ?? '';
       }
     }

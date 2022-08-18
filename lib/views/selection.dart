@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:oktoast/oktoast.dart';
 import 'package:prestacarro_front/models/active.dart';
 import 'package:prestacarro_front/models/person.dart';
@@ -88,8 +89,10 @@ class _SelectionState extends State<Selection> {
       if (seconds < 0) {
         countdownTimer!.cancel();
         if (!isReleasing) {
-          Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (context) => Index()));
+          SchedulerBinding.instance?.addPostFrameCallback((_) {
+            Navigator.pushReplacement(
+                context, MaterialPageRoute(builder: (context) => Index()));
+          });
         } else {
           print("is releasing and isn't posible close");
         }
@@ -335,10 +338,10 @@ class _SelectionState extends State<Selection> {
 
                     Future.delayed(Duration(seconds: 4), () {
                       Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => Index(),
-                          ));
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Index(),
+                            ));
                     });
                   }
 
