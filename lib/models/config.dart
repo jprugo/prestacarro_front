@@ -1,32 +1,31 @@
 class Config {
-  String? backendBaseUrl;
-  String? cameraBaseUrl;
-  String? nodeUrl1;
-  String? nodeUrl2;
-  String? nodeUrl3;
+  late String backendBaseUrl;
+  late String cameraBaseUrl;
+  late List<String> nodes;
+  late String logoPath;
 
-  Config(
-      {this.backendBaseUrl,
-      this.cameraBaseUrl,
-      this.nodeUrl1,
-      this.nodeUrl2,
-      this.nodeUrl3});
+  Config({
+    required this.backendBaseUrl,
+    required this.cameraBaseUrl,
+    required this.nodes,
+    required this.logoPath
+  });
 
-  Config.fromJson(Map<String, dynamic> json) {
-    backendBaseUrl = json['backendBaseUrl'];
-    cameraBaseUrl = json['cameraBaseUrl'];
-    nodeUrl1 = json['nodeUrl1'];
-    nodeUrl2 = json['nodeUrl2'];
-    nodeUrl3 = json['nodeUrl3'];
+  factory Config.fromJson(Map<String, dynamic> json) {
+    return Config(
+      backendBaseUrl: json['backendBaseUrl'] as String,
+      cameraBaseUrl: json['cameraBaseUrl'] as String,
+      nodes: (json['nodes'] as List<dynamic>).cast<String>(),
+      logoPath: json['logoPath'] as String,
+    );
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['backendBaseUrl'] = this.backendBaseUrl;
-    data['cameraBaseUrl'] = this.cameraBaseUrl;
-    data['nodeUrl1'] = this.nodeUrl1;
-    data['nodeUrl2'] = this.nodeUrl2;
-    data['nodeUrl3'] = this.nodeUrl3;
-    return data;
+    return {
+      'backendBaseUrl': backendBaseUrl,
+      'cameraBaseUrl': cameraBaseUrl,
+      'nodes': nodes,
+      'logoPath': logoPath
+    };
   }
 }

@@ -1,19 +1,24 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:oktoast/oktoast.dart';
-import 'package:prestacarro_front/models/active.dart';
+import 'package:prestacarro_front/chain/backend_handler.dart';
+import 'package:prestacarro_front/chain/camera_handler.dart';
+import 'package:prestacarro_front/chain/dto.dart';
+import 'package:prestacarro_front/chain/station_handler.dart';
+import 'package:prestacarro_front/gateway/camera_gateway.dart';
+import 'package:prestacarro_front/gateway/loan_gateway.dart';
+import 'package:prestacarro_front/gateway/station_gateway.dart';
+import 'package:provider/provider.dart';
+
+import 'package:rflutter_alert/rflutter_alert.dart';
+
+import '../provider/config_model.dart';
 import 'package:prestacarro_front/models/person.dart';
 import 'package:prestacarro_front/views/index.dart';
 import 'package:prestacarro_front/widgets/car_card.dart';
-
-import 'package:http/http.dart' as http;
 import 'package:prestacarro_front/widgets/main_layout.dart';
-import 'package:provider/provider.dart';
-import 'package:rflutter_alert/rflutter_alert.dart';
-import '../provider/config_model.dart';
 
 class Selection extends StatefulWidget {
   final Person person;
@@ -26,35 +31,37 @@ class Selection extends StatefulWidget {
 
 // with WidgetsBindingObserver
 class _SelectionState extends State<Selection> {
-  // Future
-  late Future<List> future;
-
-  late String? backendBaseUrl;
-  late String? cameraBaseUrl;
-
   bool isReleasing = false;
-  late var nodeUrls = <String?>[];
+  Duration myDuration = Duration(minutes: 2);
 
   Timer? countdownTimer;
-  Duration myDuration = Duration(minutes: 2);
+
+  late BackendHandler backendHandler;
+
+  late Future<List> future;
+  late var nodeUrls = <String>[];
 
   // State methods
   @override
   void initState() {
     super.initState();
     final _model = Provider.of<ConfigModel>(context, listen: false);
-    backendBaseUrl = _model.config.backendBaseUrl;
-    cameraBaseUrl = _model.config.cameraBaseUrl;
+    nodeUrls = _model.config.nodes;
 
-    nodeUrls = [
-      _model.config.nodeUrl1,
-      _model.config.nodeUrl2,
-      _model.config.nodeUrl3
-    ];
+    StationGateway stationGateway = new StationGateway();
+    CameraGateway cameraGateway =
+        new CameraGateway(_model.config.cameraBaseUrl);
+    LoanGateway loanGateway = new LoanGateway(_model.config.backendBaseUrl);
 
-    future = Future.wait(nodeUrls.map((e) => e != null
-        ? makeNodemcuGetActivesRequest('$e/actives')
-        : basicFuture()));
+    // Chain of responsability
+    backendHandler = new BackendHandler(loanGateway);
+    CameraHandler cameraHandler = new CameraHandler(cameraGateway);
+    StationHandler stationHandler = new StationHandler(stationGateway);
+
+    backendHandler.next = stationHandler;
+    stationHandler.next = cameraHandler;
+
+    future = Future.wait(nodeUrls.map((e) => stationGateway.getActives(e)));
 
     startTimer();
   }
@@ -65,18 +72,11 @@ class _SelectionState extends State<Selection> {
     super.dispose();
   }
 
-  // Future<void> didChangeAppLifeCycleState(AppLifecycleState state) async {
-  //   if (state == AppLifecycleState.inactive) {
-  //     print('Inactivity was detected');
-  //   }
-  // }
-
   void startTimer() {
     countdownTimer =
         Timer.periodic(Duration(seconds: 1), (_) => setCountDown());
   }
 
-  // Step 4
   void stopTimer() {
     setState(() => countdownTimer!.cancel());
   }
@@ -90,180 +90,11 @@ class _SelectionState extends State<Selection> {
         if (!isReleasing) {
           Navigator.pushReplacement(
               context, MaterialPageRoute(builder: (context) => Index()));
-        } else {
-          print("is releasing and isn't posible close");
         }
       } else {
         myDuration = Duration(seconds: seconds);
       }
     });
-  }
-
-  Future<dynamic> basicFuture() async {
-    return null;
-  }
-
-  // backend request
-  Future<bool> createLoanRequest(
-      BuildContext context, int? idPerson, int? idActive, String url) async {
-    // logic
-
-    var headers = {'Content-Type': 'application/json'};
-
-    var request = http.Request('POST', Uri.parse('$backendBaseUrl/loans'));
-
-    request.body = json.encode({
-      "idPerson": idPerson,
-      "idActive": idActive,
-    });
-
-    request.headers.addAll(headers);
-
-    http.StreamedResponse response = await request.send();
-
-    if (response.statusCode == 201) {
-      var map = jsonDecode(await response.stream.bytesToString());
-      try {
-        var result2 =
-            await makeLiberationRequest(context, map['id'], idActive, url);
-        print(result2 ? "Liberacion exitosa" : "No se pudo liberar vehiculo");
-      } catch (exception) {
-        print(exception.toString());
-      }
-      return true;
-    } else {
-      print(response.reasonPhrase);
-      return false;
-    }
-
-    // To mock function
-
-    // await Future.delayed(Duration(seconds: 1), () {
-    //   print('waiting 2 seconds...');
-    // });
-
-    // return true;
-  }
-
-  // photo backend
-  Future<String?> takePicture(String id) async {
-    print('taking picture... [URL]: ${cameraBaseUrl}');
-    // flask
-    if (cameraBaseUrl == null) return null;
-
-    var request = http.MultipartRequest(
-        'POST', Uri.parse('${cameraBaseUrl}/takepicture'));
-
-    request.fields.addAll({'id': id});
-
-    final response = await request.send();
-
-    if (response.statusCode == 201) {
-      print('Picture was taken!');
-      var result = json.decode(await response.stream.bytesToString());
-      print(result['imagePath']);
-      return result['imagePath'];
-    } else {
-      print(response.reasonPhrase);
-      return null;
-    }
-  }
-
-  // nodemcu request
-  Future<bool> makeLiberationRequest(
-      BuildContext context, int idLoan, int? idActive, String url) async {
-    print('[Nodemcu] Making release request for loan $idLoan ...');
-
-    var body = json.encode({
-      "idLoan": idLoan,
-      "idActive": idActive,
-    });
-
-    var headers = {
-      'Content-Type': 'application/json',
-      'Content-Length': body.length.toString()
-    };
-
-    var request = http.Request('POST', Uri.parse('$url/liberate'));
-    request.headers.addAll(headers);
-    request.body = body;
-
-    http.StreamedResponse response = await request.send();
-
-    if (response.statusCode == 200) {
-      print('Dispatched!');
-      return true;
-    } else {
-      print(response.statusCode);
-      //throw Exception('Failed!');
-      return false;
-    }
-
-    // To mocking functionality
-    //return true;
-  }
-
-  // nodemcu request
-  Future<List> makeNodemcuGetActivesRequest(final String url) async {
-    // Logic
-
-    print('Making request to: $url ...');
-
-    var request = http.Request('POST', Uri.parse(url));
-
-    try {
-      http.StreamedResponse response = await request.send();
-
-      if (response.statusCode == 200) {
-        print('Fetched data succesfully!');
-        var listOfDicts = jsonDecode(await response.stream.bytesToString());
-        return listOfDicts.map((e) => Active.fromJson(e)).toList();
-      } else {
-        print(response.statusCode);
-        throw Exception("Se recibio un codigo inesperado.");
-      }
-    } catch (exception) {
-      return List.empty();
-    }
-
-    // To mock functionality
-
-    // num number = 8;
-
-    // await Future.delayed(Duration(seconds: 1), () {
-    //   print('waiting 2 seconds...');
-    // });
-
-    // if (number <= 0) {
-    //   return [
-    //     Active(available: true, id: 1, internalCode: 'C01'),
-    //     Active(available: true, id: 2, internalCode: 'C02'),
-    //     Active(available: true, id: 3, internalCode: 'C03'),
-    //     Active(available: true, id: 4, internalCode: 'C04'),
-    //     Active(available: true, id: 5, internalCode: 'C05'),
-    //   ];
-    // } else if (number == 1) {
-    //   return [
-    //     Active(available: true, id: 1, internalCode: 'C01'),
-    //     Active(available: true, id: 2, internalCode: 'C02'),
-    //     Active(available: true, id: 3, internalCode: 'C03'),
-    //     Active(available: true, id: 4, internalCode: 'C04'),
-    //     Active(available: true, id: 5, internalCode: 'C05'),
-    //     Active(available: true, id: 6, internalCode: 'C06'),
-    //     Active(available: true, id: 7, internalCode: 'C07'),
-    //   ];
-    // } else {
-    //   return [
-    //     Active(available: true, id: 1, internalCode: 'C01'),
-    //     Active(available: true, id: 2, internalCode: 'C02'),
-    //     Active(available: true, id: 3, internalCode: 'C03'),
-    //     Active(available: true, id: 4, internalCode: 'C04'),
-    //     Active(available: true, id: 5, internalCode: 'C05'),
-    //     Active(available: true, id: 6, internalCode: 'C06'),
-    //     Active(available: true, id: 7, internalCode: 'C07'),
-    //     Active(available: true, id: 8, internalCode: 'C08'),
-    //   ];
-    // }
   }
 
   @override
@@ -277,7 +108,6 @@ class _SelectionState extends State<Selection> {
         children: [
           FutureBuilder(
             future: future,
-            //future: _testMakeNodemcuGetActivesRequest(8),
             builder: (
               BuildContext context,
               AsyncSnapshot snapshot,
@@ -322,8 +152,6 @@ class _SelectionState extends State<Selection> {
                   });
 
                   if (totalActives == 0) {
-                    // show toast
-
                     showToast(
                       "Lo sentimos, no hay vehiculos disponibles para prestar.",
                       position: ToastPosition.center,
@@ -333,6 +161,7 @@ class _SelectionState extends State<Selection> {
                       textStyle: const TextStyle(fontSize: 30.0),
                     );
 
+                    // Luego de mostrar el toast nos devolvemos :(
                     Future.delayed(Duration(seconds: 4), () {
                       Navigator.pushReplacement(
                           context,
@@ -392,69 +221,82 @@ class _SelectionState extends State<Selection> {
                                                               DialogButton(
                                                                 onPressed:
                                                                     () async {
+                                                                  //Cierre de boton
+                                                                  Navigator.pop(
+                                                                      context);
+
                                                                   setState(() {
                                                                     isReleasing =
                                                                         true;
                                                                   });
 
-                                                                  var imagePath =
-                                                                      await takePicture(
-                                                                          widget.person.documentNumber ??
-                                                                              "");
+                                                                  Dto dto =
+                                                                      new Dto(
+                                                                    person: widget
+                                                                        .person,
+                                                                    active: a,
+                                                                    stationUrl:
+                                                                        nodeUrls[
+                                                                            entry.key],
+                                                                  );
 
-                                                                  Navigator.pop(
-                                                                      context);
+                                                                  // TO DO: Logica de
+                                                                  await backendHandler
+                                                                      .handle(
+                                                                          dto);
 
-                                                                  await createLoanRequest(
-                                                                          context,
-                                                                          widget
-                                                                              .person
-                                                                              .id,
-                                                                          a.id,
-                                                                          nodeUrls[entry
-                                                                              .key]!)
-                                                                      .then(
-                                                                          (value) {
-                                                                    if (value) {
-                                                                      Alert(
-                                                                          context:
-                                                                              context,
-                                                                          image: Image
-                                                                              .file(
-                                                                            File(imagePath!),
-                                                                            width:
-                                                                                400,
-                                                                            height:
-                                                                                400,
-                                                                          ),
-                                                                          style:
-                                                                              AlertStyle(
-                                                                            titleStyle:
-                                                                                TextStyle(fontWeight: FontWeight.bold),
-                                                                          ),
-                                                                          onWillPopActive:
-                                                                              true,
-                                                                          closeFunction:
-                                                                              () {},
-                                                                          title:
-                                                                              "Liberacion",
-                                                                          desc:
-                                                                              '¡Listo ${widget.person.fullName}! Tienes 30 segundos para retirar el vehiculo ${a.id}',
-                                                                          buttons: []).show();
-                                                                      Future.delayed(
-                                                                          Duration(
-                                                                              seconds: 29),
-                                                                          () {
-                                                                        Navigator.pop(
-                                                                            context);
-                                                                        Navigator.pushReplacement(
+                                                                  if (dto.released ==
+                                                                      true) {
+                                                                    Alert(
+                                                                        context:
                                                                             context,
-                                                                            MaterialPageRoute(
-                                                                              builder: (context) => Index(),
-                                                                            ));
-                                                                      });
-                                                                    }
-                                                                  });
+                                                                        image: Image
+                                                                            .file(
+                                                                          File(dto
+                                                                              .filePath!),
+                                                                          width:
+                                                                              400,
+                                                                          height:
+                                                                              400,
+                                                                        ),
+                                                                        style:
+                                                                            AlertStyle(
+                                                                          titleStyle:
+                                                                              TextStyle(fontWeight: FontWeight.bold),
+                                                                        ),
+                                                                        onWillPopActive:
+                                                                            true,
+                                                                        closeFunction:
+                                                                            () {},
+                                                                        title:
+                                                                            "Liberacion",
+                                                                        desc:
+                                                                            '¡Listo ${widget.person.fullName}! Tienes 30 segundos para retirar el vehiculo ${a.id}',
+                                                                        buttons: []).show();
+                                                                    Future.delayed(
+                                                                        Duration(
+                                                                            seconds:
+                                                                                29),
+                                                                        () {
+                                                                      Navigator.pop(
+                                                                          context);
+                                                                      Navigator.pushReplacement(
+                                                                          context,
+                                                                          MaterialPageRoute(
+                                                                            builder: (context) =>
+                                                                                Index(),
+                                                                          ));
+                                                                    });
+                                                                    setState(
+                                                                        () {
+                                                                      isReleasing =
+                                                                          false;
+                                                                    });
+                                                                   
+                                                                  } else {
+                                                                    print(
+                                                                        "no pudo ser liberado");
+                                                                  }
                                                                 },
                                                                 child: Text(
                                                                   "Si",

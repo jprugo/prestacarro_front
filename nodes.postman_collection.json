@@ -1,0 +1,114 @@
+{
+	"info": {
+		"_postman_id": "b0c1fc38-0abf-433c-b9e1-771bf63ad078",
+		"name": "nodes",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27530855"
+	},
+	"item": [
+		{
+			"name": "node1/actives",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{url}}/node1/actives",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"node1",
+						"actives"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Default",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/node1/actives",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"node1",
+								"actives"
+							]
+						}
+					},
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": null,
+					"cookie": [],
+					"body": "[{\n\"id\": 1,\n\"internal_code\": \"ABC123\",\n\"available\": true\n}]"
+				}
+			]
+		},
+		{
+			"name": "node1/liberate",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{url}}/node1/liberate",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"node1",
+						"liberate"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Default",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/node1/liberate",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"node1",
+								"liberate"
+							]
+						}
+					},
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": null,
+					"cookie": [],
+					"body": "{\n    \"id_loan\": 1,\n    \"loan_registration_date\": \"1990-01-01\",\n    \"person\": {\n      \"id\": 1,\n      \"firstName\": \"John\",\n      \"middleName\": \"Doe\",\n      \"lastName\": \"Smith\",\n      \"surName\": \"Jr.\",\n      \"documentNumber\": \"ABC123\",\n      \"birthDate\": \"1990-01-01\",\n      \"sex\": \"Male\",\n      \"fullName\": \"John Doe Smith\"\n    }\n  }"
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "url",
+			"value": "https://b42dab27-8b76-4481-95fb-49dcc67cac8f.mock.pstmn.io"
+		}
+	]
+}

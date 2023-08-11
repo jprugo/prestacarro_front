@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:prestacarro_front/gateway/person_gateway.dart';
 import 'package:prestacarro_front/models/person.dart';
 import 'package:prestacarro_front/provider/config_model.dart';
 import 'package:prestacarro_front/views/index.dart';
@@ -10,8 +10,6 @@ import 'package:prestacarro_front/widgets/main_layout.dart';
 import 'package:provider/provider.dart';
 
 import 'selection.dart';
-
-import 'package:http/http.dart' as http;
 
 class DocumentScan extends StatefulWidget {
   const DocumentScan({Key? key}) : super(key: key);
@@ -22,18 +20,15 @@ class DocumentScan extends StatefulWidget {
 
 // with WidgetsBindingObserver
 class _DocumentScanState extends State<DocumentScan> {
-  // The node used to request the keyboard focus.
-
   final FocusNode _focusNode = FocusNode();
 
   String _chain = "";
+  Duration myDuration = Duration(minutes: 2);
 
   late Person person;
-  late String? backendBaseUrl;
+  late PersonGateway personGateway;
 
   Timer? countdownTimer;
-
-  Duration myDuration = Duration(minutes: 2);
 
   void startTimer() {
     countdownTimer =
@@ -64,7 +59,7 @@ class _DocumentScanState extends State<DocumentScan> {
     super.initState();
     final _model = Provider.of<ConfigModel>(context, listen: false);
     startTimer();
-    backendBaseUrl = _model.config.backendBaseUrl;
+    personGateway = new PersonGateway(_model.config.backendBaseUrl);
   }
 
   @override
@@ -74,83 +69,38 @@ class _DocumentScanState extends State<DocumentScan> {
     super.dispose();
   }
 
-  // Future<void> didChangeAppLifeCycleState(AppLifecycleState state) async {
-  //   if (state == AppLifecycleState.inactive) {
-  //     print('Inactivity was detected');
-  //   }
-  // }
-
-  void createPersonRequest(Person person) async {
-    var headers = {'Content-Type': 'application/json'};
-
-    var request = http.Request('POST', Uri.parse('$backendBaseUrl/persons'));
-
-    request.headers.addAll(headers);
-
-    request.body = jsonEncode(person.toJson());
-
-    http.StreamedResponse response = await request.send();
-
-    if (response.statusCode == 201 || response.statusCode == 208) {
-      String responseStr = await response.stream.bytesToString();
-      person = Person.fromJson(jsonDecode(responseStr));
-      Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) => Selection(
-                    person: person,
-                  )));
-    } else {
-      print('${response.reasonPhrase}');
-    }
-  }
-
   void _handleKeyEvent(RawKeyEvent? event) {
     // We check if the event is realising a key
     if (event is RawKeyDownEvent) {
       // Enter means capturing all the buffered data until then
       if (event.logicalKey == LogicalKeyboardKey.enter) {
-
-        // To mock functionaity
-        // createPersonRequest(new Person(
-        //     documentNumber: '123455665',
-        //     birthDate: '20221098',
-        //     firstName: 'Chino',
-        //     fullName: 'Chino',
-        //     lastName: 'Nacho',
-        //     sex: 'M',
-        //     id: 1));
-
         // logic
         var array =
             _chain.replaceAllMapped(RegExp(r'>$'), (match) => '').split('>');
-        if (array.length == 5 || array.length == 7) {
-          Person person = Person(
-            // Tiene solo un apellido y un nombre
-            documentNumber: array[0], // igual para ambos
-            firstName:
-                array[array.length == 5 ? 2 : 3], // (7) -> [3] (5) -> [2]
-            middleName:
-                array.length == 7 ? array[4] : null, // (7) -> [4] (5) -> null
-            lastName: array[1], // igual para ambos
-            surName:
-                array.length == 7 ? array[2] : null, // (7) -> [2] (5) -> null
-            birthDate:
-                array[array.length == 5 ? 4 : 6], // (7) -> [6] (5) -> [4]
-            sex: array[array.length == 5 ? 3 : 5], // (7) -> [5] (5) -> [3]
-          );
-          createPersonRequest(person);
-        } else if (array.length == 6) {
-          Person person = Person(
-              documentNumber: array[0],
-              firstName: array[3],
-              lastName: array[1],
-              surName: array[2], //'middleName':'Blah'
-              birthDate: array[5],
-              sex: array[4]);
-          createPersonRequest(person);
-        }
-        // end
+
+        person = Person(
+          // Tiene solo un apellido y un nombre
+          documentNumber: array[0], // igual para ambos
+          firstName: array[array.length == 5 ? 2 : 3], // (7) -> [3] (5) -> [2]
+          middleName:
+              array.length == 7 ? array[4] : null, // (7) -> [4] (5) -> null
+          lastName: array[1], // igual para ambos
+          surName:
+              array.length == 7 ? array[2] : null, // (7) -> [2] (5) -> null
+          birthDate: array[array.length == 5 ? 4 : 6], // (7) -> [6] (5) -> [4]
+          sex: array[array.length == 5 ? 3 : 5], // (7) -> [5] (5) -> [3]
+        );
+        // Creamos la persona y seguimos el flujo
+        personGateway.post(person).then((value) => {
+              Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => Selection(
+                            person: value,
+                          )))
+            });
+      } else if (event.logicalKey == LogicalKeyboardKey.tab) {
+        _chain += '>';
       } else if (!event.logicalKey.isAutogenerated) {
         _chain += event.character ?? '';
       }

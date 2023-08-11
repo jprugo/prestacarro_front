@@ -1,4 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:prestacarro_front/provider/config_model.dart';
+import 'package:provider/provider.dart';
 
 class MainLayout extends StatelessWidget {
   final Widget? child;
@@ -7,6 +11,9 @@ class MainLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    final _model = Provider.of<ConfigModel>(context, listen: false);
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 10),
       child: Column(
@@ -18,8 +25,8 @@ class MainLayout extends StatelessWidget {
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Image.asset(
-                'assets/images/logo_cc.jpeg',
+              Image.file(
+                File(_model.config.logoPath),
                 width: 150,
                 height: 150,
               ),

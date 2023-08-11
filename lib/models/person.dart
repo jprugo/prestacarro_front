@@ -1,37 +1,38 @@
 class Person {
   int? id;
-  String? firstName;
+  final String firstName;
   String? middleName;
-  String? lastName;
+  final String lastName;
   String? surName;
-  String? documentNumber;
-  String? birthDate;
-  String? sex;
-  //String? registrationDate;
-  String? fullName;
+  final String documentNumber;
+  final String birthDate;
+  final String sex;
+  late String? fullName;
 
   Person(
       {this.id,
-      this.firstName,
+      required this.firstName,
       this.middleName,
-      this.lastName,
+      required this.lastName,
       this.surName,
-      this.documentNumber,
-      this.birthDate,
-      this.sex,
+      required this.documentNumber,
+      required this.birthDate,
+      required this.sex,
       this.fullName});
 
-  Person.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    firstName = json['firstName'];
-    middleName = json['middleName'];
-    lastName = json['lastName'];
-    surName = json['surName'];
-    documentNumber = json['documentNumber'];
-    birthDate = json['birthDate'];
-    sex = json['sex'];
-    //registrationDate = json['registrationDate'];
-    fullName = json['fullName'];
+  factory Person.fromJson(Map<String, dynamic> json) {
+    return Person(
+      id: json['id'] as int,
+      firstName: json['firstName'] as String,
+      middleName: json['middleName'] as String,
+      lastName: json['lastName'] as String,
+      surName: json['surName'] as String,
+      documentNumber: json['documentNumber'] as String,
+      birthDate: json['birthDate'] as String,
+      sex: json['sex'] as String,
+      //registrationDate: DateTime.parse(json['registrationDate'] as String),
+      fullName: json['fullName'] as String,
+    );
   }
 
   Map<String, dynamic> toJson() {

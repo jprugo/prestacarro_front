@@ -1,0 +1,8 @@
+{
+    "backendBaseUrl": "https://ca59f549-228f-46d6-86bb-a25cd76b13ff.mock.pstmn.io/prestacarro",
+    "cameraBaseUrl": "https://ca59f549-228f-46d6-86bb-a25cd76b13ff.mock.pstmn.io/camera",
+    "nodes": [
+        "https://d001945b-54b2-40a1-8c27-148480f434b8.mock.pstmn.io/node1/actives"
+    ],
+    "logoPath": "C:\\PrestaCarroDesktop\\logo_cc.jpeg"
+}

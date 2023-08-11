@@ -23,12 +23,12 @@ class CarCard extends StatelessWidget {
         height: 110,
         child: InkWell(
             borderRadius: BorderRadius.all(Radius.circular(15)),
-            onTap: (active!.available ?? false) ? onTap : null,
+            onTap: (active!.available) ? onTap : null,
             child: Padding(
               child: Column(
                 children: [
                   Text(
-                    active!.internalCode ?? "N/A",
+                    active!.internalCode,
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   Expanded(
@@ -36,7 +36,7 @@ class CarCard extends StatelessWidget {
                       child: SvgPicture.asset(
                         'assets/svgs/paw.svg',
                         semanticsLabel: 'Paw Logo',
-                        color: (active!.available ?? false) == false
+                        color: (active!.available) == false
                             ? Colors.red
                             : Colors.green,
                         width: 150,
