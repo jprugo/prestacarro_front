@@ -4,5 +4,7 @@
     "nodes": [
         "https://d001945b-54b2-40a1-8c27-148480f434b8.mock.pstmn.io/node1/actives"
     ],
-    "logoPath": "C:\\PrestaCarroDesktop\\logo_cc.jpeg"
+    "logoPath": "C:\\PrestaCarroDesktop\\logo_cc.jpeg",
+    "logo2": "C:\\PrestaCarroDesktop\\logo_cc.jpeg",
+    "selectionMenuEnabled": false
 }
