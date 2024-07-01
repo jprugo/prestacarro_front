@@ -1,10 +1,12 @@
 {
-    "backendBaseUrl": "https://ca59f549-228f-46d6-86bb-a25cd76b13ff.mock.pstmn.io/prestacarro",
-    "cameraBaseUrl": "https://ca59f549-228f-46d6-86bb-a25cd76b13ff.mock.pstmn.io/camera",
+    "title": "Sistema de despacho automatizado para mascotas",
+    "backendBaseUrl": "https://b00c78e7-7ea4-4d64-8285-44aca7350737.mock.pstmn.io/prestacarro",
+    "cameraBaseUrl": "https://b00c78e7-7ea4-4d64-8285-44aca7350737.mock.pstmn.io/camera",
     "nodes": [
-        "https://d001945b-54b2-40a1-8c27-148480f434b8.mock.pstmn.io/node1/actives"
+        "https://dad4649b-65fc-4932-882b-b1472c462195.mock.pstmn.io/node1"
     ],
-    "logoPath": "C:\\PrestaCarroDesktop\\logo_cc.jpeg",
-    "logo2": "C:\\PrestaCarroDesktop\\logo_cc.jpeg",
+    "logoPath": "C:\\PrestaCarroDesktop\\logo2.jpeg",
+    "logo2": "C:\\PrestaCarroDesktop\\logo2.jpeg",
+    "avatar": "C:\\PrestaCarroDesktop\\logo2.jpeg",
     "selectionMenuEnabled": false
 }

@@ -1,0 +1,249 @@
+{
+	"info": {
+		"_postman_id": "a0edcd0b-af3a-41ce-ac17-a8d2b624abc4",
+		"name": "backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "34226402"
+	},
+	"item": [
+		{
+			"name": "camera/takepicture",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{url}}/camera/takepicture",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"camera",
+						"takepicture"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Default",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://b00c78e7-7ea4-4d64-8285-44aca7350737.mock.pstmn.io/camera/takepicture",
+							"protocol": "https",
+							"host": [
+								"b00c78e7-7ea4-4d64-8285-44aca7350737",
+								"mock",
+								"pstmn",
+								"io"
+							],
+							"path": [
+								"camera",
+								"takepicture"
+							]
+						}
+					},
+					"code": 201,
+					"_postman_previewlanguage": "Text",
+					"header": [],
+					"cookie": [],
+					"body": "{\"imagePath\": \"C:\\\\PrestaCarroDesktop\\\\avatar.jfif\"}"
+				}
+			]
+		},
+		{
+			"name": "prestacarro/persons",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{url}}/prestacarro/persons",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"prestacarro",
+						"persons"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Default",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://b00c78e7-7ea4-4d64-8285-44aca7350737.mock.pstmn.io/prestacarro/persons",
+							"protocol": "https",
+							"host": [
+								"b00c78e7-7ea4-4d64-8285-44aca7350737",
+								"mock",
+								"pstmn",
+								"io"
+							],
+							"path": [
+								"prestacarro",
+								"persons"
+							]
+						}
+					},
+					"code": 201,
+					"_postman_previewlanguage": "Text",
+					"header": [],
+					"cookie": [],
+					"body": "{\n  \"id\": 1,\n  \"firstName\": \"John\",\n  \"middleName\": \"Doe\",\n  \"lastName\": \"Smith\",\n  \"surName\": \"Jr.\",\n  \"documentNumber\": \"ABC123\",\n  \"birthDate\": \"1990-01-01\",\n  \"sex\": \"Male\",\n  \"fullName\": \"John Doe Smith\"\n}\n"
+				}
+			]
+		},
+		{
+			"name": "prestacarro/actives/least-used",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/prestacarro/actives/least-used",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"prestacarro",
+						"actives",
+						"least-used"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Default",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://b00c78e7-7ea4-4d64-8285-44aca7350737.mock.pstmn.io/prestacarro/actives/least-used",
+							"protocol": "https",
+							"host": [
+								"b00c78e7-7ea4-4d64-8285-44aca7350737",
+								"mock",
+								"pstmn",
+								"io"
+							],
+							"path": [
+								"prestacarro",
+								"actives",
+								"least-used"
+							]
+						}
+					},
+					"status": "undefined",
+					"code": 200,
+					"_postman_previewlanguage": "Text",
+					"header": [],
+					"cookie": [],
+					"body": "{\n  \"id\": 1,\n  \"internal_code\": \"C01\",\n  \"available\": true\n}\n"
+				}
+			]
+		},
+		{
+			"name": "prestacarro/loans",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{url}}/prestacarro/loans",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"prestacarro",
+						"loans"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Default",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://b00c78e7-7ea4-4d64-8285-44aca7350737.mock.pstmn.io/prestacarro/loans",
+							"protocol": "https",
+							"host": [
+								"b00c78e7-7ea4-4d64-8285-44aca7350737",
+								"mock",
+								"pstmn",
+								"io"
+							],
+							"path": [
+								"prestacarro",
+								"loans"
+							]
+						}
+					},
+					"code": 201,
+					"_postman_previewlanguage": "Text",
+					"header": [],
+					"cookie": [],
+					"body": "{\r\n    \"id_loan\": 1,\r\n    \"person\": {\r\n  \"id\": 1,\r\n  \"firstName\": \"John\",\r\n  \"middleName\": \"Doe\",\r\n  \"lastName\": \"Smith\",\r\n  \"surName\": \"Jr.\",\r\n  \"documentNumber\": \"ABC123\",\r\n  \"birthDate\": \"1990-01-01\",\r\n  \"sex\": \"Male\",\r\n  \"fullName\": \"John Doe Smith\"\r\n}\r\n,\r\n    \"loan_registration_date\": \"2024-06-30 15:30:45.123456\" \r\n}"
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "url",
+			"value": "https://b00c78e7-7ea4-4d64-8285-44aca7350737.mock.pstmn.io"
+		}
+	]
+}
