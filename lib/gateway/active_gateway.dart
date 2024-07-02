@@ -14,7 +14,7 @@ class ActiveGateway {
     
     var headers = {'Content-Type': 'application/json'};
 
-    var request = http.Request('GET', Uri.parse('$backendBaseUrl/active'));
+    var request = http.Request('GET', Uri.parse('$backendBaseUrl/actives/least-used'));
 
     print("Making url to: " + request.url.toString());
 
@@ -22,9 +22,12 @@ class ActiveGateway {
 
     http.StreamedResponse response = await request.send();
 
+    print(response.statusCode);
     if (response.statusCode == 200) {
       String responseStr = await response.stream.bytesToString();
+      print(responseStr);
       active = Active.fromJson(jsonDecode(responseStr));
+      print("Activo recuperado correctamente");
     } else {
       print('${response.reasonPhrase}');
       throw Exception("Error obteniedo activo");

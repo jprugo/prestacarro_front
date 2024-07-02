@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "b0c1fc38-0abf-433c-b9e1-771bf63ad078",
+		"_postman_id": "8e779b6c-45b9-4d31-b990-5d0da63d0190",
 		"name": "nodes",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "27530855"
+		"_exporter_id": "34226402"
 	},
 	"item": [
 		{
@@ -48,15 +48,15 @@
 						}
 					},
 					"code": 200,
-					"_postman_previewlanguage": null,
-					"header": null,
+					"_postman_previewlanguage": "Text",
+					"header": [],
 					"cookie": [],
 					"body": "[{\n\"id\": 1,\n\"internal_code\": \"ABC123\",\n\"available\": true\n}]"
 				}
 			]
 		},
 		{
-			"name": "node1/liberate",
+			"name": "node1/release",
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -65,13 +65,13 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{url}}/node1/liberate",
+					"raw": "{{url}}/node1/release",
 					"host": [
 						"{{url}}"
 					],
 					"path": [
 						"node1",
-						"liberate"
+						"release"
 					]
 				}
 			},
@@ -86,29 +86,100 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "{{url}}/node1/liberate",
+							"raw": "{{url}}/node1/release",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"node1",
-								"liberate"
+								"release"
 							]
 						}
 					},
 					"code": 200,
-					"_postman_previewlanguage": null,
-					"header": null,
+					"_postman_previewlanguage": "Text",
+					"header": [],
 					"cookie": [],
 					"body": "{\n    \"id_loan\": 1,\n    \"loan_registration_date\": \"1990-01-01\",\n    \"person\": {\n      \"id\": 1,\n      \"firstName\": \"John\",\n      \"middleName\": \"Doe\",\n      \"lastName\": \"Smith\",\n      \"surName\": \"Jr.\",\n      \"documentNumber\": \"ABC123\",\n      \"birthDate\": \"1990-01-01\",\n      \"sex\": \"Male\",\n      \"fullName\": \"John Doe Smith\"\n    }\n  }"
 				}
 			]
+		},
+		{
+			"name": "node1/getRandomAvailable",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{url}}/node1/release",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"node1",
+						"release"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Default",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/node1/getRandomAvailable",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"node1",
+								"getRandomAvailable"
+							]
+						}
+					},
+					"code": 200,
+					"_postman_previewlanguage": "Text",
+					"header": [],
+					"cookie": [],
+					"body": "{\n\"id\": 1,\n\"internal_code\": \"ABC123\",\n\"available\": true\n}"
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
 		}
 	],
 	"variable": [
 		{
 			"key": "url",
-			"value": "https://b42dab27-8b76-4481-95fb-49dcc67cac8f.mock.pstmn.io"
+			"value": "https://dad4649b-65fc-4932-882b-b1472c462195.mock.pstmn.io"
 		}
 	]
 }

@@ -12,7 +12,7 @@ class Active {
   factory Active.fromJson(Map<String, dynamic> json) {
     return Active(
       id: json['id'] as int,
-      internalCode: json['internal_code'] as String,
+      internalCode: json['internalCode'] as String,
       available: json['available'] as bool,
     );
   }

@@ -265,64 +265,45 @@ class _SelectionState extends State<Selection> {
 
                   return Column(
                     children: [
-                      !selectionMenuEnabled
+                      !isReleasing
                           ? Column(
+                              children: data.entries
+                                  .map<Widget>((entry) => Row(
+                                        mainAxisSize: MainAxisSize.max,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: entry.value != null
+                                            ? entry.value
+                                                .map<Widget>((a) => CarCard(
+                                                      active: a,
+                                                      onTap: () {
+                                                        getReleaseAlert(
+                                                                context,
+                                                                a,
+                                                                nodeUrls[
+                                                                    entry.key])
+                                                            .show();
+                                                      },
+                                                    ))
+                                                .toList()
+                                            : [
+                                                Text(
+                                                    'No se puede mostrar estacion')
+                                              ],
+                                      ))
+                                  .toList())
+                          : Column(
                               children: [
-                                FutureBuilder(
-                                    future: Future.delayed(
-                                        Duration(seconds: 10), () async {
-                                      Active active = await activeGateway.get();
-                                      getReleaseAlert(
-                                              context, active, nodeUrls.first)
-                                          .show();
-                                    }),
-                                    builder: (
-                                      BuildContext context,
-                                      AsyncSnapshot snapshot,
-                                    ) {
-                                      return const Text('Releasing');
-                                    })
-                              ],
-                            )
-                          : !isReleasing
-                              ? Column(
-                                  children: data.entries
-                                      .map<Widget>((entry) => Row(
-                                            mainAxisSize: MainAxisSize.max,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: entry.value != null
-                                                ? entry.value
-                                                    .map<Widget>((a) => CarCard(
-                                                          active: a,
-                                                          onTap: () {
-                                                            getReleaseAlert(
-                                                                    context,
-                                                                    a,
-                                                                    nodeUrls[entry
-                                                                        .key])
-                                                                .show();
-                                                          },
-                                                        ))
-                                                    .toList()
-                                                : [
-                                                    Text(
-                                                        'No se puede mostrar estacion')
-                                                  ],
-                                          ))
-                                      .toList())
-                              : Column(
-                                  children: [
-                                    CircularProgressIndicator(),
-                                    SizedBox(
-                                      height: 10,
-                                    ),
-                                    Text(
-                                      'Estamos procesando la solicitud, un momento por favor.',
-                                      style: TextStyle(fontSize: 18),
-                                    )
-                                  ],
+                                CircularProgressIndicator(),
+                                SizedBox(
+                                  height: 10,
                                 ),
+                                Text(
+                                  'Estamos procesando la solicitud, un momento por favor.',
+                                  style: TextStyle(fontSize: 18),
+                                )
+                              ],
+                            ),
                     ],
                   );
                 } else {

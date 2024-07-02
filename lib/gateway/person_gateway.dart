@@ -24,8 +24,9 @@ class PersonGateway {
 
     if (response.statusCode == 201 || response.statusCode == 208) {
       String responseStr = await response.stream.bytesToString();
+      print(responseStr);
       person = Person.fromJson(jsonDecode(responseStr));
-      print("Person created succesfully!");
+      print("Person created succesfully with id: ${person.id}!");
     } else {
       print('${response.reasonPhrase}');
       throw Exception("Error creando persona");

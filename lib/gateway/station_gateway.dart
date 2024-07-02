@@ -29,8 +29,32 @@ class StationGateway {
     }
   }
 
+  Future<Active> getActive(String baseUrl) async {
+
+    var request = http.Request('POST', Uri.parse('$baseUrl/getRandomAvailable'));
+
+    print("Making url to node: "+ request.url.toString());
+
+    try {
+      http.StreamedResponse response = await request.send();
+
+      if (response.statusCode == 200) {
+        print('Fetched data succesfully!');
+        var jsonResponse = jsonDecode(await response.stream.bytesToString());
+        return Active.fromJson(jsonResponse);
+        
+      } else {
+        print(response.statusCode);
+        throw Exception("Se recibio un codigo inesperado.");
+      }
+    } catch (exception) {
+      print(exception);
+      throw Exception("No se pudo obtener un activo");
+    }
+  }
+
   Future<void> post(String stationBaseUrl, int idLoan, int idActive) async {
-    print('[Nodemcu] Making release request for loan $idLoan ...');
+    print('[Station] Making release request for loan $idLoan ...');
 
     var body = json.encode({
       "idLoan": idLoan,
@@ -42,7 +66,7 @@ class StationGateway {
       'Content-Length': body.length.toString()
     };
 
-    var request = http.Request('POST', Uri.parse('$stationBaseUrl/liberate'));
+    var request = http.Request('POST', Uri.parse('$stationBaseUrl/release'));
     request.headers.addAll(headers);
     request.body = body;
 

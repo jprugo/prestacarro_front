@@ -31,7 +31,7 @@ class MainLayout extends StatelessWidget {
                 height: 150,
               ),
               Text(
-                'Sistema de despacho automatizado para mascotas',
+                _model.config.title,
                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               ),
               Image.file(
