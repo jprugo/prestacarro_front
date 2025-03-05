@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart' show kDebugMode;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:prestacarro_front/gateway/person_gateway.dart';
@@ -10,7 +8,6 @@ import 'package:prestacarro_front/views/index.dart';
 import 'package:prestacarro_front/views/release.dart';
 import 'package:prestacarro_front/widgets/main_layout.dart';
 import 'package:provider/provider.dart';
-
 import 'package:prestacarro_front/views/selection.dart';
 
 class DocumentScan extends StatefulWidget {
@@ -20,50 +17,22 @@ class DocumentScan extends StatefulWidget {
   _DocumentScanState createState() => _DocumentScanState();
 }
 
-// with WidgetsBindingObserver
 class _DocumentScanState extends State<DocumentScan> {
   final FocusNode _focusNode = FocusNode();
-
   String _chain = "";
-  Duration myDuration = Duration(minutes: 2);
-
-  late Person person;
+  Duration countdownDuration = Duration(minutes: 2);
   late PersonGateway personGateway;
-  late bool menuSelectionEnabled = false;
-
+  late bool menuSelectionEnabled;
   Timer? countdownTimer;
   late ConfigModel _model;
-
-  void startTimer() {
-    countdownTimer =
-        Timer.periodic(Duration(seconds: 1), (_) => setCountDown());
-  }
-
-  // Step 4
-  void stopTimer() {
-    setState(() => countdownTimer!.cancel());
-  }
-
-  void setCountDown() {
-    final reduceSecondsBy = 1;
-    setState(() {
-      final seconds = myDuration.inSeconds - reduceSecondsBy;
-      if (seconds < 0) {
-        countdownTimer!.cancel();
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => Index()));
-      } else {
-        myDuration = Duration(seconds: seconds);
-      }
-    });
-  }
 
   @override
   void initState() {
     super.initState();
     _model = Provider.of<ConfigModel>(context, listen: false);
+    personGateway = PersonGateway(_model.config.backendBaseUrl);
+    menuSelectionEnabled = _model.config.selectionMenuEnabled;
     startTimer();
-    personGateway = new PersonGateway(_model.config.backendBaseUrl);
   }
 
   @override
@@ -73,70 +42,68 @@ class _DocumentScanState extends State<DocumentScan> {
     super.dispose();
   }
 
-  void _handleKeyEvent(KeyEvent? event) {
+  void startTimer() {
+    countdownTimer = Timer.periodic(Duration(seconds: 1), (_) => updateCountdown());
+  }
+
+  void stopTimer() {
+    countdownTimer?.cancel();
+  }
+
+  void updateCountdown() {
+    setState(() {
+      final seconds = countdownDuration.inSeconds - 1;
+      if (seconds < 0) {
+        stopTimer();
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Index()));
+      } else {
+        countdownDuration = Duration(seconds: seconds);
+      }
+    });
+  }
+
+  void handleDocumentScan() {
+    print("Scan read completed");
+    Person person = parsePersonData(_chain);
+    if (menuSelectionEnabled) {
+      navigateToSelection(person);
+    } else {
+      navigateToRelease(person);
+    }
+  }
+
+  Person parsePersonData(String chain) {
+    if (chain.length == 90) {
+      return userFromNewDocumentStr(chain);
+    } else {
+      return userFromOldDocumentStr(chain);
+    }
+  }
+
+  void navigateToRelease(Person person) {
+    personGateway.post(person).then((value) {
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Release(person: value)));
+    }).catchError((error) {
+      // Handle error (e.g., show error message)
+    });
+  }
+
+  void navigateToSelection(Person person) {
+    personGateway.post(person).then((value) {
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Selection(person: value)));
+    }).catchError((error) {
+      // Handle error (e.g., show error message)
+    });
+  }
+
+  void _handleKeyEvent(KeyEvent event) {
     if (event is KeyDownEvent) {
-      // Enter means capturing all the buffered data until then
+            var chain_lenght = _chain.length;
+      if (chain_lenght == 90) {
+        handleDocumentScan();
+      }
       if (event.logicalKey == LogicalKeyboardKey.enter) {
-        // mock
-        if (_model.config.isDebug) {
-          person = new Person(
-              id: 16,
-              documentNumber: "123456789",
-              firstName: '',
-              lastName: '',
-              birthDate: '',
-              sex: '',
-              middleName: '',
-              fullName: '',
-              surName: '');
-
-          personGateway.post(person).then((value) => {
-                Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => Release(
-                              person: value,
-                            )))
-              });
-        } else {
-          var array =
-              _chain.replaceAllMapped(RegExp(r'>$'), (match) => '').split('>');
-
-          person = Person(
-            // Tiene solo un apellido y un nombre
-            documentNumber: array[0], // igual para ambos
-            firstName:
-                array[array.length == 5 ? 2 : 3], // (7) -> [3] (5) -> [2]
-            middleName:
-                array.length == 7 ? array[4] : null, // (7) -> [4] (5) -> null
-            lastName: array[1], // igual para ambos
-            surName:
-                array.length == 7 ? array[2] : null, // (7) -> [2] (5) -> null
-            birthDate:
-                array[array.length == 5 ? 4 : 6], // (7) -> [6] (5) -> [4]
-            sex: array[array.length == 5 ? 3 : 5], // (7) -> [5] (5) -> [3]
-          );
-          // Creamos la persona y seguimos el flujo
-          if (menuSelectionEnabled) {
-            personGateway.post(person).then((value) => {
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => Selection(
-                                person: value,
-                              )))
-                });
-          } else {
-            personGateway.post(person).then((value) => {
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => Release(
-                                person: value,
-                              )))
-                });
-          }
-        }
+        handleDocumentScan();
       } else if (event.logicalKey == LogicalKeyboardKey.tab) {
         _chain += '>';
       } else if (!event.logicalKey.isAutogenerated) {
@@ -149,77 +116,74 @@ class _DocumentScanState extends State<DocumentScan> {
   Widget build(BuildContext context) {
     FocusScope.of(context).requestFocus(_focusNode);
     return Scaffold(
-        body: KeyboardListener(
-            focusNode: _focusNode,
-            onKeyEvent: _handleKeyEvent,
-            child: MainLayout(
-              child: Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    elevation: 2,
-                    child: Container(
-                        width: 900,
-                        margin: EdgeInsets.all(5),
-                        decoration: BoxDecoration(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(30))),
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 20,
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
+      body: KeyboardListener(
+        focusNode: _focusNode,
+        onKeyEvent: _handleKeyEvent,
+        child: MainLayout(
+          child: Center(
+            child: Card(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              elevation: 2,
+              child: Container(
+                width: 900,
+                margin: EdgeInsets.all(5),
+                decoration: BoxDecoration(borderRadius: BorderRadius.circular(30)),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Row(
+                        children: [
+                          Image.asset('assets/images/document_icon.jpeg', width: 160, height: 160),
+                          SizedBox(width: 10),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                mainAxisSize: MainAxisSize.max,
-                                children: [
-                                  Image.asset(
-                                    'assets/images/document_icon.jpeg',
-                                    width: 160,
-                                    height: 160,
-                                  ),
-                                  SizedBox(
-                                    width: 10,
-                                  ),
-                                  Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Escanea tu documento",
-                                        style: TextStyle(
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      SizedBox(
-                                        height: 20,
-                                      ),
-                                      Text(
-                                        "Ubica la parte trasera de tu documento en el lector de codigo de barras",
-                                        style: TextStyle(fontSize: 18),
-                                      ),
-                                    ],
-                                  )
-                                ],
-                              ),
-                              Divider(),
-                              Image.asset(
-                                'assets/images/document.jpeg',
-                                width: 300,
-                                height: 300,
-                              ),
+                              Text("Escanea tu documento", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                              SizedBox(height: 20),
+                              Text("Ubica la parte trasera de tu documento en el lector de código de barras", style: TextStyle(fontSize: 18)),
                             ],
                           ),
-                        )),
+                        ],
+                      ),
+                      Divider(),
+                      Image.asset('assets/images/document.jpeg', width: 300, height: 300),
+                    ],
                   ),
-                ],
+                ),
               ),
-            )));
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Person userFromNewDocumentStr(String chain) {
+    final nameParts = chain.substring(68).replaceAll(RegExp(r'<+'), '<').split('<').where((part) => part.isNotEmpty).toList();
+    return Person(
+      lastName: nameParts.isNotEmpty ? nameParts[0] : "",
+      surName: nameParts.length > 1 ? nameParts[1] : "",
+      firstName: nameParts.length > 2 ? nameParts[2] : "",
+      middleName: nameParts.length > 3 ? nameParts[3] : null,
+      documentNumber: chain.substring(52, 62),
+      birthDate: chain.substring(34, 40),
+      sex: chain.substring(41, 42),
+    );
+  }
+
+  Person userFromOldDocumentStr(String chain) {
+    chain = chain.replaceAll("|", "");
+    var array = chain.replaceAll(RegExp(r'>$'), '').split('>');
+    return Person(
+      documentNumber: array[0],
+      firstName: array[array.length == 5 ? 2 : 3],
+      middleName: array.length == 7 ? array[4] : null,
+      lastName: array[1],
+      surName: array.length == 7 ? array[2] : null,
+      sex: array[array.length == 5 ? 3 : 5],
+      birthDate: array[array.length == 5 ? 4 : 6],
+    );
   }
 }
