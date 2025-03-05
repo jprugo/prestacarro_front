@@ -10,10 +10,10 @@ class Loan {
 
   factory Loan.fromJson(Map<String, dynamic> json) {
     return Loan(
-      id: json['id_loan'] as int,
+      id: json['id'] as int,
       person: Person.fromJson(json['person'] as Map<String, dynamic>),
       registrationDate:
-          DateTime.parse(json['loan_registration_date'] as String),
+          DateTime.parse(json['registrationDate'] as String),
     );
   }
 
