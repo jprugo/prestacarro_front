@@ -5,9 +5,10 @@
     "nodes": [
         "https://dad4649b-65fc-4932-882b-b1472c462195.mock.pstmn.io/node1"
     ],
-    "logoPath": "C:\\PrestaCarroDesktop\\logo2.jpeg",
-    "logo2": "C:\\PrestaCarroDesktop\\logo2.jpeg",
-    "avatar": "C:\\PrestaCarroDesktop\\logo2.jpeg",
+    "logo1": "C:\\PrestaCarroDesktop\\assets\\logo1.png",
+    "logo2": "C:\\PrestaCarroDesktop\\assets\\logo2.jpeg",
+    "avatar": "C:\\PrestaCarroDesktop\\assets\\avatar.jpg",
+    "iconSelection": "C:\\PrestaCarroDesktop\\assets\\paw.svg",
     "selectionMenuEnabled": false,
     "isDebug": true
 }

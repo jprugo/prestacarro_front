@@ -26,7 +26,7 @@ class MainLayout extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Image.file(
-                File(_model.config.logoPath),
+                File(_model.config.logo1),
                 width: 150,
                 height: 150,
               ),
