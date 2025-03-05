@@ -43,7 +43,8 @@ class _DocumentScanState extends State<DocumentScan> {
   }
 
   void startTimer() {
-    countdownTimer = Timer.periodic(Duration(seconds: 1), (_) => updateCountdown());
+    countdownTimer =
+        Timer.periodic(Duration(seconds: 1), (_) => updateCountdown());
   }
 
   void stopTimer() {
@@ -55,7 +56,8 @@ class _DocumentScanState extends State<DocumentScan> {
       final seconds = countdownDuration.inSeconds - 1;
       if (seconds < 0) {
         stopTimer();
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Index()));
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => Index()));
       } else {
         countdownDuration = Duration(seconds: seconds);
       }
@@ -64,7 +66,22 @@ class _DocumentScanState extends State<DocumentScan> {
 
   void handleDocumentScan() {
     print("Scan read completed");
-    Person person = parsePersonData(_chain);
+    late Person person;
+    if (_model.config.isDebug) {
+      print("Using dummy person");
+      person = Person(
+        lastName: "Doe",
+        surName: "",
+        firstName: "Jhon",
+        middleName: "",
+        documentNumber: "1234567890",
+        birthDate: "010198",
+        sex: "M",
+      );
+    } else {
+      person = parsePersonData(_chain);
+    }
+    print("Changing view...");
     if (menuSelectionEnabled) {
       navigateToSelection(person);
     } else {
@@ -82,7 +99,8 @@ class _DocumentScanState extends State<DocumentScan> {
 
   void navigateToRelease(Person person) {
     personGateway.post(person).then((value) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Release(person: value)));
+      Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (context) => Release(person: value)));
     }).catchError((error) {
       // Handle error (e.g., show error message)
     });
@@ -90,15 +108,16 @@ class _DocumentScanState extends State<DocumentScan> {
 
   void navigateToSelection(Person person) {
     personGateway.post(person).then((value) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Selection(person: value)));
+      Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (context) => Selection(person: value)));
     }).catchError((error) {
-      // Handle error (e.g., show error message)
+      print(error);
     });
   }
 
   void _handleKeyEvent(KeyEvent event) {
     if (event is KeyDownEvent) {
-            var chain_lenght = _chain.length;
+      var chain_lenght = _chain.length;
       if (chain_lenght == 90) {
         handleDocumentScan();
       }
@@ -122,12 +141,14 @@ class _DocumentScanState extends State<DocumentScan> {
         child: MainLayout(
           child: Center(
             child: Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30)),
               elevation: 2,
               child: Container(
                 width: 900,
                 margin: EdgeInsets.all(5),
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(30)),
+                decoration:
+                    BoxDecoration(borderRadius: BorderRadius.circular(30)),
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
@@ -135,20 +156,27 @@ class _DocumentScanState extends State<DocumentScan> {
                     children: [
                       Row(
                         children: [
-                          Image.asset('assets/images/document_icon.jpeg', width: 160, height: 160),
+                          Image.asset('assets/images/document_icon.jpeg',
+                              width: 160, height: 160),
                           SizedBox(width: 10),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("Escanea tu documento", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                              Text("Escanea tu documento",
+                                  style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold)),
                               SizedBox(height: 20),
-                              Text("Ubica la parte trasera de tu documento en el lector de código de barras", style: TextStyle(fontSize: 18)),
+                              Text(
+                                  "Ubica la parte trasera de tu documento en el lector de código de barras",
+                                  style: TextStyle(fontSize: 18)),
                             ],
                           ),
                         ],
                       ),
                       Divider(),
-                      Image.asset('assets/images/document.jpeg', width: 300, height: 300),
+                      Image.asset('assets/images/document.jpeg',
+                          width: 300, height: 300),
                     ],
                   ),
                 ),
@@ -161,12 +189,17 @@ class _DocumentScanState extends State<DocumentScan> {
   }
 
   Person userFromNewDocumentStr(String chain) {
-    final nameParts = chain.substring(68).replaceAll(RegExp(r'<+'), '<').split('<').where((part) => part.isNotEmpty).toList();
+    final nameParts = chain
+        .substring(68)
+        .replaceAll(RegExp(r'<+'), '<')
+        .split('<')
+        .where((part) => part.isNotEmpty)
+        .toList();
     return Person(
       lastName: nameParts.isNotEmpty ? nameParts[0] : "",
       surName: nameParts.length > 1 ? nameParts[1] : "",
       firstName: nameParts.length > 2 ? nameParts[2] : "",
-      middleName: nameParts.length > 3 ? nameParts[3] : null,
+      middleName: nameParts.length > 3 ? nameParts[3] : "",
       documentNumber: chain.substring(52, 62),
       birthDate: chain.substring(34, 40),
       sex: chain.substring(41, 42),

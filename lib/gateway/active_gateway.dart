@@ -24,10 +24,9 @@ class ActiveGateway {
 
     print(response.statusCode);
     if (response.statusCode == 200) {
+      print('[GET] Petición de activo realizada exitosamente');
       String responseStr = await response.stream.bytesToString();
-      print(responseStr);
       active = Active.fromJson(jsonDecode(responseStr));
-      print("Activo recuperado correctamente");
     } else {
       print('${response.reasonPhrase}');
       throw Exception("Error obteniedo activo");
