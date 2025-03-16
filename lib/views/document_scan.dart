@@ -212,9 +212,9 @@ class _DocumentScanState extends State<DocumentScan> {
     return Person(
       documentNumber: array[0],
       firstName: array[array.length == 5 ? 2 : 3],
-      middleName: array.length == 7 ? array[4] : null,
+      middleName: array.length == 7 ? array[4] : "",
       lastName: array[1],
-      surName: array.length == 7 ? array[2] : null,
+      surName: array.length == 7 ? array[2] : "",
       sex: array[array.length == 5 ? 3 : 5],
       birthDate: array[array.length == 5 ? 4 : 6],
     );
