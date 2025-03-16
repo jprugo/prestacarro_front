@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:prestacarro_front/models/active.dart';
+import 'package:prestacarro_front/provider/config_model.dart';
+import 'package:provider/provider.dart';
 
 class CarCard extends StatelessWidget {
   final Active? active;
@@ -12,6 +16,7 @@ class CarCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final _model = Provider.of<ConfigModel>(context);
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
@@ -33,8 +38,8 @@ class CarCard extends StatelessWidget {
                   ),
                   Expanded(
                     child: Padding(
-                      child: SvgPicture.asset(
-                        'assets/svgs/paw.svg',
+                      child: SvgPicture.file(
+                        File('assets/svgs/paw.svg'),
                         semanticsLabel: 'Paw Logo',
                         color: (active!.available) == false
                             ? Colors.red
