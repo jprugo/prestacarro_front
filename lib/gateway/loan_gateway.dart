@@ -26,7 +26,7 @@ class LoanGateway {
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 201) {
-      print("Respuesta correcta!");
+      print('[POST] Petición de prestamo realizada exitosamente');
       return Loan.fromJson(jsonDecode(await response.stream.bytesToString()));
 
     }else{

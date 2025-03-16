@@ -16,7 +16,7 @@ class StationGateway {
       http.StreamedResponse response = await request.send();
 
       if (response.statusCode == 200) {
-        print('Fetched data succesfully!');
+        print('[GET] Petición de estación realizada exitosamente');
         var listOfDicts = jsonDecode(await response.stream.bytesToString());
         return listOfDicts.map((e) => Active.fromJson(e)).toList();
       } else {
