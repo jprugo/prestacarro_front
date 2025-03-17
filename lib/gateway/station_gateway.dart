@@ -54,37 +54,24 @@ class StationGateway {
     print('[Station] Making release request for loan $idLoan ...');
 
     var headers = {'Content-Type': 'application/json'};
+    //var request =
+    //    http.Request('POST', Uri.parse('${stationBaseUrl}/liberate'));
     var request =
-        http.Request('POST', Uri.parse('${stationBaseUrl}/liberate'));
-    request.body = json.encode({"id_active": idActive, "id_loan": idLoan});
+        http.Request('POST', Uri.parse('http://192.168.0.240:8081/prestacarro/dummy'));
+    
+    request.body = json.encode({"id_active":idActive, "id_loan":idLoan});
     request.headers.addAll(headers);
 
     print("Calling service [${request.url}] ...");
 
-    try {
-      // El manejo de errores usando onError
-      http.StreamedResponse response =
-          await request.send().onError(handleError);
-      print("End call service...");
+     http.StreamedResponse response =
+          await request.send().timeout(Duration(seconds: 15));
 
-      if (response.statusCode == 200) {
+    if (response.statusCode == 200) {
         print(await response.stream.bytesToString());
       } else {
         print(response.reasonPhrase);
       }
-    } catch (e, stackTrace) {
-      // Si ocurre un error que no es manejado por onError
-      print("Error occurred: $e");
-      print("Stack trace: $stackTrace");
-    }
   }
 
-// Definir el manejador de errores
-  FutureOr<http.StreamedResponse> handleError(
-      Object error, StackTrace stackTrace) {
-    print("Error occurred during the HTTP request: $error");
-    // Aquí puedes manejar el error, como realizar un log o retornar un error personalizado.
-    // Si quieres lanzar una excepción personalizada, puedes usar:
-    return Future.error('Error durante la solicitud HTTP');
-  }
 }

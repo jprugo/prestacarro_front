@@ -11,7 +11,7 @@ class StationHandler extends Handler {
   @override
   Future<void> execute(Dto dto) async {
     print("Inicia manejo estaciones...");
-    this.stationGateway.post(dto.stationUrl, dto.loan!.id, dto.active.id);
+    await this.stationGateway.post(dto.stationUrl, dto.loan!.id, dto.active.id);
     dto.released = true;
   }
 

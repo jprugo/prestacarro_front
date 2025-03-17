@@ -14,6 +14,7 @@ class CameraGateway {
     var request = http.MultipartRequest(
         'POST', Uri.parse('${baseUrl}/$CREATE'));
 
+    print("Calling service [${request.url}] ...");
     request.fields.addAll({'id': id});
 
     final response = await request.send();

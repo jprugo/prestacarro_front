@@ -8,7 +8,7 @@ abstract class Handler {
   Future<void> handle(Dto dto) async{
     await this.execute(dto);
     if (_next != null)
-      _next!.handle(dto);
+      await _next!.handle(dto);
   }
 
   Future<void> execute(Dto dto);
