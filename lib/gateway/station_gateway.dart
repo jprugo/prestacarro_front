@@ -5,12 +5,10 @@ import 'dart:convert';
 import '../models/active.dart';
 
 class StationGateway {
-
   Future<List> getActives(String baseUrl) async {
-
     var request = http.Request('POST', Uri.parse('$baseUrl/actives'));
 
-    print("Making url to node: "+ request.url.toString());
+    print("Making url to node: " + request.url.toString());
 
     try {
       http.StreamedResponse response = await request.send();
@@ -30,10 +28,10 @@ class StationGateway {
   }
 
   Future<Active> getActive(String baseUrl) async {
+    var request =
+        http.Request('POST', Uri.parse('$baseUrl/getRandomAvailable'));
 
-    var request = http.Request('POST', Uri.parse('$baseUrl/getRandomAvailable'));
-
-    print("Making url to node: "+ request.url.toString());
+    print("Making url to node: " + request.url.toString());
 
     try {
       http.StreamedResponse response = await request.send();
@@ -42,7 +40,6 @@ class StationGateway {
         print('Fetched data succesfully!');
         var jsonResponse = jsonDecode(await response.stream.bytesToString());
         return Active.fromJson(jsonResponse);
-        
       } else {
         print(response.statusCode);
         throw Exception("Se recibio un codigo inesperado.");
@@ -56,27 +53,38 @@ class StationGateway {
   Future<void> post(String stationBaseUrl, int idLoan, int idActive) async {
     print('[Station] Making release request for loan $idLoan ...');
 
-    var body = json.encode({
-      "idLoan": idLoan,
-      "idActive": idActive,
-    });
-
-    var headers = {
-      'Content-Type': 'application/json',
-      'Content-Length': body.length.toString()
-    };
-
-    var request = http.Request('POST', Uri.parse('$stationBaseUrl/release'));
+    var headers = {'Content-Type': 'application/json'};
+    var request =
+        http.Request('POST', Uri.parse('${stationBaseUrl}/liberate'));
+    request.body = json.encode({"id_active": idActive, "id_loan": idLoan});
     request.headers.addAll(headers);
-    request.body = body;
 
-    http.StreamedResponse response = await request.send();
+    print("Calling service [${request.url}] ...");
 
-    if (response.statusCode == 200) {
-      print('Dispatched!');
-    } else {
-      print(response.statusCode);
-      throw Exception('Station integration failed');
+    try {
+      // El manejo de errores usando onError
+      http.StreamedResponse response =
+          await request.send().onError(handleError);
+      print("End call service...");
+
+      if (response.statusCode == 200) {
+        print(await response.stream.bytesToString());
+      } else {
+        print(response.reasonPhrase);
+      }
+    } catch (e, stackTrace) {
+      // Si ocurre un error que no es manejado por onError
+      print("Error occurred: $e");
+      print("Stack trace: $stackTrace");
     }
+  }
+
+// Definir el manejador de errores
+  FutureOr<http.StreamedResponse> handleError(
+      Object error, StackTrace stackTrace) {
+    print("Error occurred during the HTTP request: $error");
+    // Aquí puedes manejar el error, como realizar un log o retornar un error personalizado.
+    // Si quieres lanzar una excepción personalizada, puedes usar:
+    return Future.error('Error durante la solicitud HTTP');
   }
 }

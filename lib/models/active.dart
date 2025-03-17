@@ -10,9 +10,16 @@ class Active {
   });
 
   factory Active.fromJson(Map<String, dynamic> json) {
+    late String internalCode;
+    if (json.containsKey("internal_code")){
+      internalCode = json["internal_code"];
+    }else{
+      internalCode = json["internalCode"];
+    }
+
     return Active(
       id: json['id'] as int,
-      internalCode: json['internalCode'] as String,
+      internalCode: internalCode,
       available: json['available'] as bool,
     );
   }
@@ -20,7 +27,7 @@ class Active {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['id'] = this.id;
-    data['internal_code'] = this.internalCode;
+    data['internalCode'] = this.internalCode;
     data['available'] = this.available;
     return data;
   }

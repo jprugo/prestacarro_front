@@ -195,8 +195,8 @@ class _SelectionState extends State<Release> {
                               if (dto.released == true) {
                                 Alert(
                                     context: context,
-                                    image: Image.file(
-                                      File(_model.config.avatar),
+                                    image: Image.asset(
+                                      'assets/images/avatar.jpg',
                                       width: 400,
                                       height: 400,
                                     ),
@@ -231,10 +231,8 @@ class _SelectionState extends State<Release> {
                       )
                     ],
                   );
-                  
                 }
                 return Text('Error en conexión con la estación');
-
               } else {
                 return Text('State: ${snapshot.connectionState}');
               }
