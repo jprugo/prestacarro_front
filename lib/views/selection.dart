@@ -147,8 +147,8 @@ class _SelectionState extends State<Selection> {
               if (dto.released == true) {
                 Alert(
                     context: context,
-                    image: Image.file(
-                      File(dto.filePath),
+                    image: Image.asset(
+                      'assets/images/avatar.jpg',
                       width: 400,
                       height: 400,
                     ),
@@ -246,7 +246,7 @@ class _SelectionState extends State<Selection> {
                       "Lo sentimos, no hay vehiculos disponibles para prestar.",
                       position: ToastPosition.center,
                       duration: Duration(seconds: 4),
-                      backgroundColor: Colors.black.withOpacity(0.8),
+                      backgroundColor: Colors.red.withOpacity(0.8),
                       radius: 15.0,
                       textStyle: const TextStyle(fontSize: 30.0),
                     );
