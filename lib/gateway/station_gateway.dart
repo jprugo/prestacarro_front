@@ -54,11 +54,9 @@ class StationGateway {
     print('[Station] Making release request for loan $idLoan ...');
 
     var headers = {'Content-Type': 'application/json'};
-    //var request =
-    //    http.Request('POST', Uri.parse('${stationBaseUrl}/liberate'));
     var request =
-        http.Request('POST', Uri.parse('http://192.168.0.240:8081/prestacarro/dummy'));
-    
+        http.Request('POST', Uri.parse('${stationBaseUrl}/liberate'));
+
     request.body = json.encode({"id_active":idActive, "id_loan":idLoan});
     request.headers.addAll(headers);
 

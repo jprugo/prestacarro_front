@@ -22,6 +22,7 @@ class CameraGateway {
     if (response.statusCode == 201) {
       print('[POST] Petición de cámara realizada exitosamente');
       var result = json.decode(await response.stream.bytesToString());
+      print(result);
       return result['imagePath'];
     } else {
       print(response.reasonPhrase);
