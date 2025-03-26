@@ -12,6 +12,7 @@ class CameraHandler extends Handler {
   Future<void> execute(Dto dto) async {
     print("Inicia manejo servicio camara...");
     dto.filePath = (await cameraGateway.post(dto.person.documentNumber.toString()))!;
+    print("dto file path: ${dto.filePath}");
   }
 
 }

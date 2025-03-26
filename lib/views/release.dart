@@ -193,13 +193,24 @@ class _SelectionState extends State<Release> {
                               await backendHandler.handle(dto);
 
                               if (dto.released == true) {
-                                Alert(
-                                    context: context,
-                                    image: Image.asset(
+                                var image_resource;
+                                if (dto.filePath.isEmpty){
+                                  image_resource =Image.file(
+                                      File(dto.filePath),
+                                      width: 400,
+                                      height: 400,
+                                    );
+                                }else{
+                                  image_resource =Image.asset(
                                       'assets/images/avatar.jpg',
                                       width: 400,
                                       height: 400,
-                                    ),
+                                    );
+                                }
+                                
+                                Alert(
+                                    context: context,
+                                    image: image_resource,
                                     style: AlertStyle(
                                       titleStyle: TextStyle(
                                           fontWeight: FontWeight.bold),
