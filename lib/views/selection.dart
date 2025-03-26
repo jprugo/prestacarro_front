@@ -154,7 +154,7 @@ class _SelectionState extends State<Selection> {
                     );
                 }else{
                   image_resource =Image.asset(
-                      'assets/images/document.jpeg',
+                      'assets/images/avatar.jpg',
                       width: 400,
                       height: 400,
                     );
