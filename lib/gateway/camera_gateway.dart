@@ -17,18 +17,22 @@ class CameraGateway {
     print("Calling service [${request.url}] ...");
     request.fields.addAll({'id': id});
 
-    final response = await request.send();
+    try {
+      final response = await request.send().timeout(Duration(seconds: 4));
 
-    if (response.statusCode == 201) {
-      print('[POST] Petición de cámara realizada exitosamente');
-      var result = json.decode(await response.stream.bytesToString());
-      print(result);
-      return result['imagePath'];
-    } else {
-      print(response.reasonPhrase);
-      throw Exception("Camera integration exception");
+      if (response.statusCode == 201) {
+        print('[POST] Petición de cámara realizada exitosamente');
+        var result = json.decode(await response.stream.bytesToString());
+        print(result);
+        return result['imagePath'];
+      } else {
+        print(response.reasonPhrase);
+        throw Exception("Camera integration exception");
+      }
+    } catch (exception) {
+      print(exception);
+      return "";
     }
-
   }
 
 }

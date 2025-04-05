@@ -4,6 +4,8 @@ import 'dart:convert';
 
 import '../models/active.dart';
 
+const STATION_TIMEOUT = 50;
+
 class StationGateway {
   Future<List> getActives(String baseUrl) async {
     var request = http.Request('POST', Uri.parse('$baseUrl/actives'));
@@ -11,7 +13,7 @@ class StationGateway {
     print("Making url to node: " + request.url.toString());
 
     try {
-      http.StreamedResponse response = await request.send();
+      http.StreamedResponse response = await request.send().timeout(Duration(seconds: 50));
 
       if (response.statusCode == 200) {
         print('[GET] Petición de estación realizada exitosamente');
@@ -34,7 +36,7 @@ class StationGateway {
     print("Making url to node: " + request.url.toString());
 
     try {
-      http.StreamedResponse response = await request.send();
+      http.StreamedResponse response = await request.send().timeout(Duration(seconds: STATION_TIMEOUT));
 
       if (response.statusCode == 200) {
         print('Fetched data succesfully!');
@@ -63,7 +65,7 @@ class StationGateway {
     print("Calling service [${request.url}] ...");
 
      http.StreamedResponse response =
-          await request.send().timeout(Duration(seconds: 15));
+          await request.send().timeout(Duration(seconds: STATION_TIMEOUT));
 
     if (response.statusCode == 200) {
         print(await response.stream.bytesToString());
