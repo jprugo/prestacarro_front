@@ -122,6 +122,7 @@ class _DocumentScanState extends State<DocumentScan> {
         handleDocumentScan();
       }
       if (event.logicalKey == LogicalKeyboardKey.enter) {
+        print("Enter received");
         handleDocumentScan();
       } else if (event.logicalKey == LogicalKeyboardKey.tab) {
         _chain += '>';
@@ -189,6 +190,7 @@ class _DocumentScanState extends State<DocumentScan> {
   }
 
   Person userFromNewDocumentStr(String chain) {
+    print("Se detecto nuevo documento a apartir de cadena: [${_chain}]");
     final nameParts = chain
         .substring(68)
         .replaceAll(RegExp(r'<+'), '<')
@@ -207,6 +209,7 @@ class _DocumentScanState extends State<DocumentScan> {
   }
 
   Person userFromOldDocumentStr(String chain) {
+    print("Se detecto viejo documento a apartir de cadena: [${_chain}]");
     chain = chain.replaceAll("|", "");
     var array = chain.replaceAll(RegExp(r'>$'), '').split('>');
     return Person(
