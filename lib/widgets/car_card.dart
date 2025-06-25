@@ -39,7 +39,7 @@ class CarCard extends StatelessWidget {
                   Expanded(
                     child: Padding(
                       child: SvgPicture.file(
-                        File('assets/svgs/paw.svg'),
+                        File(_model.config.iconSelection),
                         semanticsLabel: 'Paw Logo',
                         color: (active!.available) == false
                             ? Colors.red

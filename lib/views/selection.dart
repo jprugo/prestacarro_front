@@ -45,12 +45,13 @@ class _SelectionState extends State<Selection> {
   late bool selectionMenuEnabled;
 
   late ActiveGateway activeGateway;
+  late ConfigModel _model;
 
   // State methods
   @override
   void initState() {
     super.initState();
-    final _model = Provider.of<ConfigModel>(context, listen: false);
+    _model = Provider.of<ConfigModel>(context, listen: false);
     nodeUrls = _model.config.nodes;
     selectionMenuEnabled = _model.config.selectionMenuEnabled;
 
@@ -153,11 +154,11 @@ class _SelectionState extends State<Selection> {
                       height: 400,
                     );
                 }else{
-                  image_resource =Image.asset(
-                      'assets/images/avatar.jpg',
+                  image_resource =Image.file(
+                      File(_model.config.avatar),
                       width: 400,
                       height: 400,
-                    );
+                  );
                 }
                 Alert(
                     context: context,

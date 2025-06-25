@@ -201,11 +201,11 @@ class _SelectionState extends State<Release> {
                                       height: 400,
                                     );
                                 }else{
-                                  image_resource =Image.asset(
-                                      'assets/images/avatar.jpg',
-                                      width: 400,
-                                      height: 400,
-                                    );
+                                  image_resource =Image.file(
+                                    File(_model.config.avatar),
+                                    width: 400,
+                                    height: 400,
+                                );
                                 }
                                 
                                 Alert(
